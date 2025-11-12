@@ -1,4 +1,5 @@
 from django.conf import settings
+from botocore.config import Config
 import boto3, magic, uuid, os
 
 ALLOWED_MIMES = {"image/png", "image/jpeg", "application/pdf"}
@@ -34,3 +35,23 @@ def upload_s3(file_obj):
     )
 
     return path
+
+def download_link(path:str):
+    s3 = boto3.client(
+        's3',
+        aws_access_key_id = settings.AWS_ACCESS_KEY_ID,
+        aws_secret_access_key = settings.AWS_SECRET_ACCESS_KEY,
+        region_name = settings.REGION_NAME,
+        config=Config(signature_version='s3v4')
+    )
+
+    response = s3.generate_presigned_url(
+        'get_object',
+        Params = {
+            'Bucket':settings.BUCKET_NAME,
+            'Key': path,
+            'ResponseContentDisposition': f'attachment; filename="{path.split('/')[-1]}"',
+        }, ExpiresIn=30,
+    )
+
+    return response
