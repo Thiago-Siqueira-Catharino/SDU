@@ -3,8 +3,8 @@ from django.db import models
 
 class Exame(models.Model):
     cpf = models.CharField(max_length=11, blank=False, null=True)
-    link = models.URLField(blank=False, null=True)
-    tipo = models.CharField(blank=False, null=True)
+    path = models.CharField(max_length=255, blank=False, null=True)
+    tipo = models.CharField(max_length=255, blank=False, null=True)
     data = models.DateTimeField(auto_now=True)
 
 class Diagnostico(models.Model):
