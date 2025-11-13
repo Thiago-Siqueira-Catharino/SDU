@@ -25,7 +25,7 @@ def upload_s3(file_obj):
     }.get(mime, "")
 
     uid = uuid.uuid4().hex
-    path = "uploads/{uid}{ext}"
+    path = f"uploads/{uid}{ext}"
 
     s3.upload_fileobj(
         file_obj,
