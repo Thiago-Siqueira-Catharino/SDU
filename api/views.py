@@ -59,3 +59,37 @@ def download_file(request):
         "Success":f"Found object with id {id}",
         "url":u.download_link(obj.path)
         })
+
+def get_exams(request):
+    if request.method != 'GET':
+        return JsonResponse({
+            "status":"error", 
+            "message":"invalid request method",
+            }, status=400)
+    
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            "status":"error",
+            "message":"login requeired",
+        }, status=401)
+    
+    cpf = request.GET.get("cpf")
+    if not cpf:
+        return JsonResponse({
+            "status":"error",
+            "message":"missing param: cpf"
+            }, status=400)
+    
+    exames = models.Exame.objects.filter(cpf=cpf).values('id', 'cpf', 'tipo', 'data')
+
+    if not list(exames):
+        return JsonResponse({
+            "status":"error",
+            "message":"No objects found in database",
+            }, status=404)
+    
+    return JsonResponse({
+        "status":"success", 
+        "message":"Valid objects found in database",
+        "exames":list(exames)
+        })
