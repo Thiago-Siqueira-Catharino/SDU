@@ -5,25 +5,34 @@ from . import utils as u
 from . import models
 # Create your views here.
 def health_check(request):
-    return JsonResponse({"Success":"All systems normal"}, status=200)
+    return JsonResponse({
+        "status":"success",
+        "message":"All systems normal",
+        }, status=200)
 
 @csrf_exempt
 def upload_file(request):
     if request.method != 'POST':
-        return JsonResponse({"Error":"Invalid request method"}, status = 400)
+        return JsonResponse({
+            "status":"error",
+            "message":"Invalid request method",
+            }, status = 400)
     
     file = request.FILES.get("file")
 
     if not file:
-        return JsonResponse({"Error":"No file was uploaded"}, status = 400)
+        return JsonResponse({
+            "status":"error",
+            "message":"No file was uploaded"
+            }, status = 400)
     
     try:
         path = u.upload_s3(file_obj=file)
     except Exception as e:
-        return JsonResponse(
-            {
-                "Failed":"Something went wrong while uploading the file",
-                "Error":str(e),
+        return JsonResponse({
+            "status":"error",
+            "message":"something went wrong while uploading the file",
+            "error":str(e),
             }, status = 500)
     
     cpf = request.POST.get("cpf")
@@ -37,28 +46,39 @@ def upload_file(request):
     
     new_file.save()
     return JsonResponse({
-        "Success":"File saved successfully"
-    }, status=200)
+        "status":"success",
+        "message":"file saved successfully"
+        }, status=200)
     
 @csrf_exempt
 def download_file(request):
     if request.method != 'GET':
-        return JsonResponse({"Error":"Invalid request method"}, status = 400)
+        return JsonResponse({
+            "status":"error", 
+            "message":"Invalid request method"
+            }, status = 400)
     
     id = request.GET.get("id")
 
     if not id:
-        return JsonResponse({"Error":"Missing item id"}, status = 400)
+        return JsonResponse({
+            "status":"error",
+            "message":"missing param: id"
+            }, status = 400)
     
     obj = models.Exame.objects.filter(id=id).first()
 
     if not obj:
-        return JsonResponse({"Error":f"Object with the id {id} not found"}, status = 404)
+        return JsonResponse({
+            "status":"error",
+            "message":f"object with id = {id} not found",
+            }, status = 404)
     
     return JsonResponse({
-        "Success":f"Found object with id {id}",
+        "status":"success",
+        "message":f"found object with id {id}",
         "url":u.download_link(obj.path)
-        })
+        }, status=200)
 
 def get_exams(request):
     if request.method != 'GET':
