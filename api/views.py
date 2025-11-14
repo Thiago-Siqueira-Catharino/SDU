@@ -108,22 +108,6 @@ def get_exams(request):
 def upload_diagnosis(request):
     error = u.handle_request_method(request, 'POST')
     if error: return error
-
-    file = request.FILES.get("file")
-    if not file:
-        return JsonResponse({
-            "status":"error",
-            "message":"No file was uploaded"
-            }, status = 400)
-    
-    try:
-        path = u.upload_s3(file_obj=file)
-    except Exception as e:
-        return JsonResponse({
-            "status":"error",
-            "message":"something went wrong while uploading the file",
-            "error":str(e),
-            }, status = 500)
     
     cpf = request.POST.get("cpf")
     cid = request.POST.get("cid")
@@ -154,6 +138,22 @@ def upload_diagnosis(request):
             }, status = 400)
         
         exames_objt.append(obj)
+
+    file = request.FILES.get("file")
+    if not file:
+        return JsonResponse({
+            "status":"error",
+            "message":"No file was uploaded"
+            }, status = 400)
+    
+    try:
+        path = u.upload_s3(file_obj=file)
+    except Exception as e:
+        return JsonResponse({
+            "status":"error",
+            "message":"something went wrong while uploading the file",
+            "error":str(e),
+            }, status = 500)
         
     new_file = models.Diagnostico(
         cpf = cpf,
