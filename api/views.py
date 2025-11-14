@@ -11,12 +11,9 @@ def health_check(request):
         }, status=200)
 
 @csrf_exempt
-def upload_file(request):
-    if request.method != 'POST':
-        return JsonResponse({
-            "status":"error",
-            "message":"Invalid request method",
-            }, status = 400)
+def upload_exam(request):
+    error = u.handle_request_method(request, 'POST')
+    if error: return error
     
     file = request.FILES.get("file")
 
@@ -50,13 +47,9 @@ def upload_file(request):
         "message":"file saved successfully"
         }, status=200)
     
-@csrf_exempt
-def download_file(request):
-    if request.method != 'GET':
-        return JsonResponse({
-            "status":"error", 
-            "message":"Invalid request method"
-            }, status = 400)
+def download_exam(request):
+    error = u.handle_request_method(request, 'POST')
+    if error: return error
     
     id = request.GET.get("id")
 
@@ -81,11 +74,8 @@ def download_file(request):
         }, status=200)
 
 def get_exams(request):
-    if request.method != 'GET':
-        return JsonResponse({
-            "status":"error", 
-            "message":"invalid request method",
-            }, status=400)
+    error = u.handle_request_method(request, 'POST')
+    if error: return error
     
     if not request.user.is_authenticated:
         return JsonResponse({
@@ -105,7 +95,7 @@ def get_exams(request):
     if not list(exames):
         return JsonResponse({
             "status":"error",
-            "message":"No objects found in database",
+            "message":"no matching objects found in database",
             }, status=404)
     
     return JsonResponse({
