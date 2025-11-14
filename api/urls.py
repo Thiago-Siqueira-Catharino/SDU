@@ -5,5 +5,5 @@ urlpatterns = [
     path("", views.health_check),
     path("upload/exam", views.upload_exam,),
     path("download/exam", views.download_exam),
-    path("saerch", views.get_exams)
+    path("search/exam", views.get_exams)
 ]
