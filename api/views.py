@@ -48,7 +48,7 @@ def upload_exam(request):
         }, status=200)
     
 def download_exam(request):
-    error = u.handle_request_method(request, 'POST')
+    error = u.handle_request_method(request, 'GET')
     if error: return error
     
     id = request.GET.get("id")
