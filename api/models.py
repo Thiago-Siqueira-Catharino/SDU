@@ -10,4 +10,5 @@ class Exame(models.Model):
 class Diagnostico(models.Model):
     cpf = models.CharField(max_length=11, blank=False, null=True)
     cid = models.CharField(max_length=4)
+    path = models.CharField(max_length=255, blank=False, null=True)
     exames = models.ManyToManyField(Exame)
