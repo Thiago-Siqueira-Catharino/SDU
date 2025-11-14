@@ -146,7 +146,7 @@ def upload_diagnosis(request):
     
     exames_objt = []
     for exame in exames_list:
-        obj = models.Exame.objects.filter(id=exame).first()
+        obj = models.Exame.objects.filter(id=exame["id"]).first()
         if not obj:
             return JsonResponse({
             "status":"error",
@@ -160,6 +160,7 @@ def upload_diagnosis(request):
         cid = cid,
         path = path,
     )
+    new_file.save()
     
     new_file.exames.set(exames_objt)
     new_file.save()
