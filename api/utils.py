@@ -1,5 +1,6 @@
-from django.conf import settings
+from django.http import JsonResponse
 from botocore.config import Config
+from django.conf import settings
 import boto3, magic, uuid, os
 
 ALLOWED_MIMES = {"image/png", "image/jpeg", "application/pdf"}
@@ -55,3 +56,28 @@ def download_link(path:str):
     )
 
     return response
+
+def handle_request_method(request, method: str):
+    if request.method != method:
+        return JsonResponse({
+            "status":"error",
+            "message":f"invalid request method. Use {method}",
+            }, status = 400)
+    
+    return None
+
+def verify_param(request, method: str, param: str):
+    if method == 'POST':
+        obj = request.POST.get(param)
+    elif method == 'GET':
+        obj = request.GET.get(param)
+    else:
+        print("Invalid method, expected GET or POST")
+    
+    if not obj:
+        return JsonResponse({
+            "status":"error",
+            "message":f"missing param: {param}"
+        }, status = 400)
+
+    return None
