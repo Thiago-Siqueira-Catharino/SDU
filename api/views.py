@@ -216,3 +216,30 @@ def upload_diagnosis(request):
         "status":"success",
         "message":"file saved successfully"
         }, status = 200)
+
+def download_diagnosis(request):
+    #Request method validation
+    error = u.handle_request_method(request, 'GET')
+    if error: return error
+    
+    #Text param validation and extraction
+    id_error = u.verify_param(request, 'GET', 'id')
+    if id_error:
+        return id_error
+    id = request.GET.get("id")
+    
+    #BD data retriaval
+    obj = models.Diagnostico.objects.filter(id=id).first()
+
+    #Retrieved data validation
+    if not obj:
+        return JsonResponse({
+            "status":"error",
+            "message":f"Diagnosis object with id = {id} not found",
+            }, status = 404)
+    
+    return JsonResponse({
+        "status":"success",
+        "message":f"found object with id {id}",
+        "url":u.download_link(obj.path)
+        }, status=200)
