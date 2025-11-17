@@ -12,3 +12,8 @@ class Diagnostico(models.Model):
     cid = models.CharField(max_length=4)
     path = models.CharField(max_length=255, blank=False, null=True)
     exames = models.ManyToManyField(Exame)
+
+class Tracker(models.Model):
+    cid = models.CharField(max_length=4, unique=True)
+    counter = models.PositiveIntegerField(default=1)
+

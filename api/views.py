@@ -1,6 +1,7 @@
 from django.views.decorators.csrf import csrf_exempt
 from django.http import JsonResponse
 from django.shortcuts import render
+from django.db.models import F
 from . import utils as u
 from . import models
 import re, json
@@ -34,6 +35,25 @@ def upload_exam(request):
     
     cpf = request.POST.get("cpf")
     tipo = request.POST.get("tipo")
+
+    if not cpf:
+        return JsonResponse({
+            "status":"error",
+            "message":"missing param: cpf"
+            }, status = 400)
+    
+    if len(cpf) < 11:
+        return JsonResponse({
+            "status":"error",
+            "message":"malformed param: cpf"
+            }, status = 400)
+    
+    if not tipo:
+        return JsonResponse({
+            "status":"error",
+            "message":"missing param: tipo"
+            }, status = 400)
+
     
     new_file = models.Exame(
         cpf = cpf,
@@ -74,7 +94,7 @@ def download_exam(request):
         }, status=200)
 
 def get_exams(request):
-    error = u.handle_request_method(request, 'POST')
+    error = u.handle_request_method(request, 'GET')
     if error: return error
     
     if not request.user.is_authenticated:
@@ -111,6 +131,24 @@ def upload_diagnosis(request):
     
     cpf = request.POST.get("cpf")
     cid = request.POST.get("cid")
+
+    if not cpf:
+        return JsonResponse({
+        "status":"error",
+        "message":"missing param: cpf"
+        }, status = 400)
+    
+    if len(cpf) < 11:
+        return JsonResponse({
+            "status":"error",
+            "message":"malformed param: cpf"
+            }, status = 400)
+    
+    if not cid:
+        return JsonResponse({
+            "status":"error",
+            "message":"missing param: cid"
+            }, status = 400)
 
     exames_raw = request.POST.get("exames")
     if not exames_raw:
@@ -161,11 +199,28 @@ def upload_diagnosis(request):
         path = path,
     )
     new_file.save()
-    
     new_file.exames.set(exames_objt)
     new_file.save()
+
+    try: 
+        tracker, created = models.Tracker.objects.get_or_create(
+            cid = cid.upper(),
+            defaults={"counter":1}
+        )
+
+        if not created:
+            models.Tracker.objects.filter(cid=cid).update(
+                counter = F('counter') + 1
+            )
+            tracker.refresh_from_db()
+    except Exception as e:
+        return JsonResponse({
+            "status":"error",
+            "message":"Unable to update tracker",
+            "error": str(e)            
+        }, status = 500)
 
     return JsonResponse({
         "status":"success",
         "message":"file saved successfully"
-        }, status=200)
+        }, status = 200)
