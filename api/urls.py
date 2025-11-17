@@ -8,4 +8,5 @@ urlpatterns = [
     path("search/exam", views.get_exams),
     path("upload/diagnosis", views.upload_diagnosis),
     path("download/diagnosis", views.download_diagnosis),
+    path("search/diagnosis", views.get_diagnoses)
 ]

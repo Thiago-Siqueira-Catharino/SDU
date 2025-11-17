@@ -243,3 +243,37 @@ def download_diagnosis(request):
         "message":f"found object with id {id}",
         "url":u.download_link(obj.path)
         }, status=200)
+
+def get_diagnoses(request):
+    #Request method validation
+    error = u.handle_request_method(request, 'GET')
+    if error: return error
+    
+    #User auth validation
+    if not request.user.is_authenticated:
+        return JsonResponse({
+            "status":"error",
+            "message":"login requeired",
+        }, status=401)
+    
+    #Text param validation
+    cpf_error = u.verify_param(request, 'GET', 'cpf')
+    if cpf_error: 
+        return cpf_error
+    cpf = request.GET.get("cpf")
+
+    #BD data retrieval
+    diagnosticos = models.Diagnostico.objects.filter(cpf=cpf).values('id', 'cpf', 'tipo', 'data')
+
+    #Retrieved data validation
+    if not list(diagnosticos):
+        return JsonResponse({
+            "status":"error",
+            "message":"no matching objects found in database",
+            }, status=404)
+    
+    return JsonResponse({
+        "status":"success", 
+        "message":"Valid objects found in database",
+        "diagnosticos":list(diagnosticos)
+        })
