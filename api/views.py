@@ -14,9 +14,25 @@ def health_check(request):
 
 @csrf_exempt
 def upload_exam(request):
+    #Request method validation
     error = u.handle_request_method(request, 'POST')
     if error: return error
     
+    #Text params validation
+    values = {}
+    params = ['cpf', 'tipo']
+    for p in params:
+        error = u.verify_param(request, 'POST', p)
+        if error:
+            return error
+        else:
+            values[p] = request.POST.get(p)
+    
+    #Text params extraction
+    cpf = values['cpf']
+    tipo = values['tipo']
+
+    #File extraction and validation
     file = request.FILES.get("file")
     if not file:
         return JsonResponse({
@@ -24,6 +40,7 @@ def upload_exam(request):
             "message":"No file was uploaded"
             }, status = 400)
     
+    #File processing
     try:
         path = u.upload_s3(file_obj=file)
     except Exception as e:
@@ -33,54 +50,34 @@ def upload_exam(request):
             "error":str(e),
             }, status = 500)
     
-    cpf = request.POST.get("cpf")
-    tipo = request.POST.get("tipo")
-
-    if not cpf:
-        return JsonResponse({
-            "status":"error",
-            "message":"missing param: cpf"
-            }, status = 400)
-    
-    if len(cpf) < 11:
-        return JsonResponse({
-            "status":"error",
-            "message":"malformed param: cpf"
-            }, status = 400)
-    
-    if not tipo:
-        return JsonResponse({
-            "status":"error",
-            "message":"missing param: tipo"
-            }, status = 400)
-
-    
+    #Data recording
     new_file = models.Exame(
         cpf = cpf,
         path = path,
         tipo = tipo
-    )
-    
+    )   
     new_file.save()
+
     return JsonResponse({
         "status":"success",
         "message":"file saved successfully"
         }, status=200)
     
 def download_exam(request):
+    #Request method validation
     error = u.handle_request_method(request, 'GET')
     if error: return error
     
+    #Text param validation and extraction
+    id_error = u.verify_param(request, 'GET', 'id')
+    if id_error:
+        return id_error
     id = request.GET.get("id")
-
-    if not id:
-        return JsonResponse({
-            "status":"error",
-            "message":"missing param: id"
-            }, status = 400)
     
+    #BD data retriaval
     obj = models.Exame.objects.filter(id=id).first()
 
+    #Retrieved data validation
     if not obj:
         return JsonResponse({
             "status":"error",
@@ -94,24 +91,27 @@ def download_exam(request):
         }, status=200)
 
 def get_exams(request):
+    #Request method validation
     error = u.handle_request_method(request, 'GET')
     if error: return error
     
+    #User auth validation
     if not request.user.is_authenticated:
         return JsonResponse({
             "status":"error",
             "message":"login requeired",
         }, status=401)
     
+    #Text param validation
+    cpf_error = u.verify_param(request, 'GET', 'cpf')
+    if cpf_error: 
+        return cpf_error
     cpf = request.GET.get("cpf")
-    if not cpf:
-        return JsonResponse({
-            "status":"error",
-            "message":"missing param: cpf"
-            }, status=400)
-    
+
+    #BD data retrieval
     exames = models.Exame.objects.filter(cpf=cpf).values('id', 'cpf', 'tipo', 'data')
 
+    #Retrieved data validation
     if not list(exames):
         return JsonResponse({
             "status":"error",
@@ -126,37 +126,35 @@ def get_exams(request):
 
 @csrf_exempt
 def upload_diagnosis(request):
+    #Request method validation
     error = u.handle_request_method(request, 'POST')
     if error: return error
-    
-    cpf = request.POST.get("cpf")
-    cid = request.POST.get("cid")
 
-    if not cpf:
-        return JsonResponse({
-        "status":"error",
-        "message":"missing param: cpf"
-        }, status = 400)
-    
-    if len(cpf) < 11:
+    #text params validation
+    values = {}
+    params = ['cpf', 'cid', 'exames']
+    for p in params:
+        error = u.verify_param(request, 'POST', p)
+        if error: 
+            return error
+        else:
+            values[p] = request.POST.get(p)
+
+    #File validation and extraction
+    file = request.FILES.get("file")
+    if not file:
         return JsonResponse({
             "status":"error",
-            "message":"malformed param: cpf"
+            "message":"No file was uploaded"
             }, status = 400)
     
-    if not cid:
-        return JsonResponse({
-            "status":"error",
-            "message":"missing param: cid"
-            }, status = 400)
 
-    exames_raw = request.POST.get("exames")
-    if not exames_raw:
-        return JsonResponse({
-            "status":"error",
-            "message":"missing param: exames",
-            }, status = 400)
+    #Validated text params extraction
+    cid = values['cid'].upper()
+    cpf = values['cpf']
+    exames_raw = values['exames']
 
+    #Exames param processing
     try:
         exames_list = json.loads(exames_raw)
     except Exception as e:
@@ -167,23 +165,17 @@ def upload_diagnosis(request):
             }, status = 400)
     
     exames_objt = []
-    for exame in exames_list:
-        obj = models.Exame.objects.filter(id=exame["id"]).first()
+    for id in exames_list:
+        obj = models.Exame.objects.filter(id=id).first()
         if not obj:
             return JsonResponse({
             "status":"error",
-            "message":f"Exam object with id = {exame} not found",
+            "message":f"Exam object with id = {id} not found",
             }, status = 400)
         
         exames_objt.append(obj)
-
-    file = request.FILES.get("file")
-    if not file:
-        return JsonResponse({
-            "status":"error",
-            "message":"No file was uploaded"
-            }, status = 400)
     
+    #File processing
     try:
         path = u.upload_s3(file_obj=file)
     except Exception as e:
@@ -193,18 +185,18 @@ def upload_diagnosis(request):
             "error":str(e),
             }, status = 500)
         
+    #Data recording and updating
     new_file = models.Diagnostico(
         cpf = cpf,
         cid = cid,
         path = path,
-    )
-    new_file.save()
+    ).save()
     new_file.exames.set(exames_objt)
     new_file.save()
 
     try: 
         tracker, created = models.Tracker.objects.get_or_create(
-            cid = cid.upper(),
+            cid = cid,
             defaults={"counter":1}
         )
 
