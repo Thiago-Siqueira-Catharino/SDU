@@ -96,11 +96,11 @@ def get_exams(request):
     if error: return error
     
     #User auth validation
-    if not request.user.is_authenticated:
-        return JsonResponse({
-            "status":"error",
-            "message":"login requeired",
-        }, status=401)
+    #if not request.user.is_authenticated:
+    #    return JsonResponse({
+    #        "status":"error",
+    #        "message":"login requeired",
+    #    }, status=401)
     
     #Text param validation
     cpf_error = u.verify_param(request, 'GET', 'cpf')

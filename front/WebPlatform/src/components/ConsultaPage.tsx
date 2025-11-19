@@ -58,29 +58,48 @@ const mockData = [
   }
 ];
 
+type ExameItem = {
+  id: number;
+  cpf: string;
+  tipo: string;
+  data: string;
+};
+
+
 export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [results, setResults] = useState(mockData);
+  const [results, setResults] = useState<ExameItem[]>([]);
 
   const handleSearch = async () => {
     setIsLoading(true);
-    
-    // Simular busca no banco de dados
-    setTimeout(() => {
-      if (searchTerm.trim() === '') {
-        setResults(mockData);
-      } else {
-        const filtered = mockData.filter(item =>
-          item.paciente.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.cpf.includes(searchTerm) ||
-          item.descricao.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          item.resultado.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setResults(filtered);
+
+    try {
+      const response = await fetch(`/api/search/exam?cpf=${encodeURI(searchTerm)}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          "Accept":"application/json",
+        },
+      });
+
+      if (response.status === 400) {
+        setResults([]);
+        return;
       }
-      setIsLoading(false);
-    }, 800);
+
+      if (!response.ok) {
+        console.error("Erro na resposta da API", response.status);
+        setResults([]);
+        return;
+      }
+
+      const data = await response.json();
+      setResults(Array.isArray(data.exames) ? data.exames : []);
+    } catch (err) {
+      console.error(err)
+    }
+    setIsLoading(false);
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -105,7 +124,7 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
-                placeholder="Pesquisar por nome, CPF, tipo de exame ou diagnóstico..."
+                placeholder="Pesquisar por CPF (sem pontos ou traços)"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 onKeyPress={handleKeyPress}
@@ -135,21 +154,18 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
           </Card>
         ) : (
           <div className="grid gap-4">
-            {results.map((item) => (
+            {(results || []).map((item) => (
               <Card key={item.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
                   <div className="flex items-start justify-between">
                     <div>
                       <CardTitle className="flex items-center space-x-2">
                         <User className="h-4 w-4" />
-                        <span>{item.paciente}</span>
+                        <span>{item.tipo}</span>
                       </CardTitle>
                       <CardDescription>CPF: {item.cpf}</CardDescription>
                     </div>
                     <div className="flex space-x-2">
-                      <Badge variant={item.tipo === 'Exame' ? 'default' : 'secondary'}>
-                        {item.tipo}
-                      </Badge>
                       <Badge variant="outline" className="flex items-center space-x-1">
                         <Calendar className="h-3 w-3" />
                         <span>{new Date(item.data).toLocaleDateString('pt-BR')}</span>
@@ -157,18 +173,6 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
                     </div>
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="space-y-2">
-                    <div>
-                      <span className="font-medium">Descrição: </span>
-                      <span>{item.descricao}</span>
-                    </div>
-                    <div>
-                      <span className="font-medium">Resultado: </span>
-                      <span className="text-muted-foreground">{item.resultado}</span>
-                    </div>
-                  </div>
-                </CardContent>
               </Card>
             ))}
           </div>
