@@ -9,54 +9,6 @@ interface ConsultaPageProps {
   onNavigate: (page: 'dashboard' | 'consulta' | 'upload' | 'cid') => void;
 }
 
-// Dados mockados para demonstração
-const mockData = [
-  {
-    id: '1',
-    paciente: 'João Silva',
-    cpf: '123.456.789-00',
-    tipo: 'Exame',
-    descricao: 'Hemograma Completo',
-    data: '2024-01-15',
-    resultado: 'Normal - Todos os parâmetros dentro da normalidade'
-  },
-  {
-    id: '2',
-    paciente: 'Maria Santos',
-    cpf: '987.654.321-00',
-    tipo: 'Diagnóstico',
-    descricao: 'Hipertensão Arterial',
-    data: '2024-01-10',
-    resultado: 'CID-10: I10 - Hipertensão essencial'
-  },
-  {
-    id: '3',
-    paciente: 'Carlos Oliveira',
-    cpf: '456.789.123-00',
-    tipo: 'Exame',
-    descricao: 'Raio-X Tórax',
-    data: '2024-01-12',
-    resultado: 'Sem alterações significativas'
-  },
-  {
-    id: '4',
-    paciente: 'Ana Costa',
-    cpf: '789.123.456-00',
-    tipo: 'Diagnóstico',
-    descricao: 'Diabetes Mellitus Tipo 2',
-    data: '2024-01-08',
-    resultado: 'CID-10: E11 - Diabetes mellitus não-insulino-dependente'
-  },
-  {
-    id: '5',
-    paciente: 'Pedro Souza',
-    cpf: '321.654.987-00',
-    tipo: 'Exame',
-    descricao: 'Eletrocardiograma',
-    data: '2024-01-14',
-    resultado: 'Ritmo sinusal normal'
-  }
-];
 
 type ExameItem = {
   id: number;
@@ -101,6 +53,39 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
     }
     setIsLoading(false);
   };
+
+  const handleDownload = async (id: string) => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`/api/download/exam?id=${encodeURI(id)}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          "Accept":"application/json",
+        },
+      });
+
+      if (!response.ok) {
+        console.error("Erro na resposta da API", response.status);
+        setResults([]);
+        return;
+      }
+
+      const data = await response.json()
+
+      if (!data.url) {
+        console.error("A api não retornou uma url")
+        return;
+      }
+
+      window.location.href = data.url
+      
+    } catch (err) {
+      console.error(err)
+    }
+    setIsLoading(false);
+  }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -166,6 +151,9 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
                       <CardDescription>CPF: {item.cpf}</CardDescription>
                     </div>
                     <div className="flex space-x-2">
+                      <Button onClick={() => handleDownload(item.id)}>
+                        Download
+                      </Button>
                       <Badge variant="outline" className="flex items-center space-x-1">
                         <Calendar className="h-3 w-3" />
                         <span>{new Date(item.data).toLocaleDateString('pt-BR')}</span>

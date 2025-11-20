@@ -116,7 +116,7 @@ def get_exams(request):
         return JsonResponse({
             "status":"error",
             "message":"no matching objects found in database",
-            }, status=404)
+            }, status=200)
     
     return JsonResponse({
         "status":"success", 
