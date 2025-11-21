@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -7,12 +7,16 @@ import { Textarea } from './ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Alert, AlertDescription } from './ui/alert';
 import { Upload, FileText, CheckCircle } from 'lucide-react';
+import { Value } from '@radix-ui/react-select';
 
 interface UploadPageProps {
   onNavigate: (page: 'dashboard' | 'consulta' | 'upload' | 'cid') => void;
 }
 
 export default function UploadPage({ onNavigate }: UploadPageProps) {
+  const [exames, setExames] = useState<{id: number, tipo: string, cpf: string}[]>([])
+  const [selectedExames, setSelectedExames] = useState<number[]>([])
+
   const [formData, setFormData] = useState({
     nome: '',
     cpf: '',
@@ -46,17 +50,38 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
     return value;
   };
 
-  const handleCPFChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const normalizeCPF = (value: string) => {
+    const numbers = value.replace(/\D/g, '');
+    return numbers
+  }
+
+  const handleCPFChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const formatted = formatCPF(e.target.value);
+
     handleInputChange('cpf', formatted);
+
+    const normalized = normalizeCPF(formatted);
+    if (normalized.length == 11) {
+      try {
+        const response = await fetch(`api/search/exam?cpf=${normalized}`)
+        const data = await response.json()
+
+        setExames(data.exames)
+        setSelectedExames([])
+      }catch (err) {
+        console.error(err)
+      }
+    }
   };
 
   const validateForm = () => {
+    if (formData.tipo === 'exame') {
+      if (!formData.descricao.trim()) return 'Descrição é obrigatória';
+    }
     if (!formData.nome.trim()) return 'Nome é obrigatório';
     if (!formData.cpf.trim()) return 'CPF é obrigatório';
     if (formData.cpf.replace(/\D/g, '').length !== 11) return 'CPF deve ter 11 dígitos';
     if (!formData.tipo) return 'Tipo é obrigatório';
-    if (!formData.descricao.trim()) return 'Descrição é obrigatória';
     if (formData.tipo === 'diagnostico' && !formData.resultado.trim()) return 'Resultado é obrigatório para diagnósticos';
     if (!formData.arquivo) return 'Arquivo é obrigatório';
     return null;
@@ -74,27 +99,48 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
     setIsLoading(true);
     setError('');
 
-    // Simular upload
-    setTimeout(() => {
+    const form = new FormData();
+    if (formData.tipo == 'exame') {
+      form.append("cpf", normalizeCPF(formData.cpf))
+      form.append("tipo", formData.descricao)
+      form.append("file", formData.arquivo as File)
+
+      const response = await fetch('api/upload/exam', {
+        method: 'POST',
+        body: form
+      });
       setSuccess(true);
       setIsLoading(false);
+    } else if (formData.tipo == 'diagnostico') {
+      form.append("file", formData.arquivo as File)
+      form.append("cpf", normalizeCPF(formData.cpf))
+      form.append("cid", formData.resultado)
+      form.append("exames", JSON.stringify(selectedExames))
       
-      // Reset form after success
-      setTimeout(() => {
-        setFormData({
-          nome: '',
-          cpf: '',
-          tipo: '',
-          descricao: '',
-          resultado: '',
-          arquivo: null
-        });
-        setSuccess(false);
-        // Reset file input
-        const fileInput = document.getElementById('arquivo') as HTMLInputElement;
-        if (fileInput) fileInput.value = '';
-      }, 2000);
-    }, 1500);
+
+      const response = await fetch('api/upload/diagnosis', {
+        method: 'POST',
+        body: form
+      });
+      setSuccess(true);
+      setIsLoading(false);
+    }
+    
+    // Reset form after success
+    setTimeout(() => {
+      setFormData({
+        nome: '',
+        cpf: '',
+        tipo: '',
+        descricao: '',
+        resultado: '',
+        arquivo: null
+      });
+      setSuccess(false);
+      // Reset file input
+      const fileInput = document.getElementById('arquivo') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+    }, 2000);
   };
 
   const formatFileSize = (bytes: number) => {
@@ -170,17 +216,19 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
                 </Select>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="descricao">Descrição</Label>
-                <Textarea
-                  id="descricao"
-                  value={formData.descricao}
-                  onChange={(e) => handleInputChange('descricao', e.target.value)}
-                  placeholder="Descreva o conteúdo do documento (ex: Hemograma completo, Raio-X tórax, etc.)"
-                  disabled={isLoading}
-                  rows={3}
-                />
-              </div>
+              {formData.tipo === 'exame' && (
+                <div className="space-y-2">
+                  <Label htmlFor="descricao">Descrição</Label>
+                  <Textarea
+                    id="descricao"
+                    value={formData.descricao}
+                    onChange={(e) => handleInputChange('descricao', e.target.value)}
+                    placeholder="Descreva o conteúdo do documento (ex: Hemograma completo, Raio-X tórax, etc.)"
+                    disabled={isLoading}
+                    rows={3}
+                  />
+                </div>
+              )}
 
               {formData.tipo === 'diagnostico' && (
                 <div className="space-y-2">
@@ -193,6 +241,22 @@ export default function UploadPage({ onNavigate }: UploadPageProps) {
                     disabled={isLoading}
                     rows={4}
                   />
+                  <Label>Exames utilizados</Label>
+                  <select
+                    multiple
+                    className="border rounded-md p-2 h-32"
+                    value={selectedExames.map(String)}
+                    onChange={(e) => {
+                      const values = Array.from(e.target.selectedOptions).map(opt => Number(opt.value))
+                      setSelectedExames(values)
+                    }}
+                  >
+                    {exames.map(exame => (
+                      <option key={exame.id} value={exame.id}>
+                        {exame.tipo}
+                      </option>
+                    ))}
+                  </select>
                 </div>
               )}
 
