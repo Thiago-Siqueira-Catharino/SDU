@@ -11,7 +11,7 @@ interface ConsultaPageProps {
 
 
 type ExameItem = {
-  id: number;
+  id: string;
   cpf: string;
   tipo: string;
   data: string;
