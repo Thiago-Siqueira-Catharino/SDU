@@ -1,7 +1,7 @@
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.shortcuts import render
-from ..api import utils as u
+from api import utils as u
 
 # Create your views here.
 def render_front(request):
@@ -39,6 +39,10 @@ def login(request):
     }, status=200)
 
 def check_login(request):
+    request_error = u.verify_param(request, 'GET')
+    if request_error:
+        return request_error
+    
     if request.user.is_authenticated:
         return JsonResponse({
             "status":"success",
