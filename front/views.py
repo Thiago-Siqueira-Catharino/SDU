@@ -37,3 +37,15 @@ def login(request):
         "status":"success",
         "message":"user logged in successfully"
     }, status=200)
+
+def check_login(request):
+    if request.user.is_authenticated:
+        return JsonResponse({
+            "status":"success",
+            "message":"user already logged in"
+        }, status=200)
+    
+    return JsonResponse({
+        "status":"error",
+        "message":"user not logged in yet"
+    }, status=401)
