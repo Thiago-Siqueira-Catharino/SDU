@@ -190,9 +190,10 @@ def upload_diagnosis(request):
         cpf = cpf,
         cid = cid,
         path = path,
-    ).save()
-    new_file.exames.set(exames_objt)
+    )
     new_file.save()
+    new_file.exames.set(exames_objt)
+    
 
     try: 
         tracker, created = models.Tracker.objects.get_or_create(
@@ -250,11 +251,11 @@ def get_diagnoses(request):
     if error: return error
     
     #User auth validation
-    if not request.user.is_authenticated:
-        return JsonResponse({
-            "status":"error",
-            "message":"login requeired",
-        }, status=401)
+    #if not request.user.is_authenticated:
+    #    return JsonResponse({
+    #        "status":"error",
+    #        "message":"login requeired",
+    #    }, status=401)
     
     #Text param validation
     cpf_error = u.verify_param(request, 'GET', 'cpf')
@@ -263,7 +264,7 @@ def get_diagnoses(request):
     cpf = request.GET.get("cpf")
 
     #BD data retrieval
-    diagnosticos = models.Diagnostico.objects.filter(cpf=cpf).values('id', 'cpf', 'tipo', 'data')
+    diagnosticos = models.Diagnostico.objects.filter(cpf=cpf).values('id', 'cpf', 'cid', 'exames')
 
     #Retrieved data validation
     if not list(diagnosticos):

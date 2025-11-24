@@ -7,7 +7,9 @@ name = "pypi"
 django = "*"
 boto3 = "*"
 django-environ = "*"
-python-magic-bin = "*"
+
+python-magic-bin = { version = "0.4.14", markers = "sys_platform == 'win32'" }
+python-magic = { version = "0.4.27", markers = "sys_platform != 'win32'" }
 
 [dev-packages]
 
