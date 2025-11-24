@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
@@ -7,6 +7,11 @@ import { Alert, AlertDescription } from './ui/alert';
 
 interface LoginProps {
   onLogin: () => void;
+}
+
+interface LoginResponse {
+  status: string,
+  message?: string
 }
 
 export default function Login({ onLogin }: LoginProps) {
@@ -27,40 +32,47 @@ export default function Login({ onLogin }: LoginProps) {
       return;
     }
 
-    // Simular delay de autenticação
-    setTimeout(() => {
-      if (username === 'admin' && password === 'admin') {
-        onLogin();
+    try {
+      const response = await fetch("/check_login", {
+        method:'POST',
+        headers:{ "Content-Type" : "application/json" },
+        credentials:'include',
+        body: JSON.stringify({
+          'username': username,
+          'password': password
+        }),
+      })
+
+      const data: LoginResponse = await response.json();
+
+      if (!response.ok) {
+        setError(data.message || "Erro no login")
       } else {
-        setError('Usuário ou senha incorretos');
+        onLogin()
       }
-      setIsLoading(false);
-    }, 1000);
+    } catch (err) {
+      console.error(err)
+    }
   };
 
- //     try {
- //   const response = await fetch("http://localhost:8000/api/login/", {
- //     method: "POST",
- //     headers: { "Content-Type": "application/json" },
- //     body: JSON.stringify({ "usuarios":username, "senha":password }),
- //   });
-//
-//    const data = await response.json();
+  useEffect(() => {
+    const checkLogin = async () => {
+      try {
+        const response = await fetch('/check_login', {
+          method:'GET',
+          credentials:'include'
+        })
 
-//    if (!response.ok) {
-//      setError(data.error || "Erro no login");
-//    } else {
-//      onLogin();
-      // opcional: guardar token no localStorage
-//       localStorage.setItem("token", data.token);
-//    }
-//  } catch (err) {
-//    setError("Erro de conexão com o servidor");
-//  }
+        if (response.status == 200) {
+          onLogin()
+        }
+      } catch (_) {
 
-//  setIsLoading(false);
-//};
-
+      }
+  };
+  
+  checkLogin();
+  }, [onLogin]);
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/50">
       <Card className="w-full max-w-md">
