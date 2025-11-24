@@ -33,25 +33,26 @@ export default function Login({ onLogin }: LoginProps) {
     }
 
     try {
-      const response = await fetch("/check_login", {
+      const form = new FormData()
+      form.append("username", username)
+      form.append("password", password)
+      const response = await fetch("/login", {
         method:'POST',
-        headers:{ "Content-Type" : "application/json" },
         credentials:'include',
-        body: JSON.stringify({
-          'username': username,
-          'password': password
-        }),
+        body: form
       })
 
       const data: LoginResponse = await response.json();
 
       if (!response.ok) {
         setError(data.message || "Erro no login")
+        setIsLoading(false)
       } else {
         onLogin()
       }
     } catch (err) {
       console.error(err)
+      setIsLoading(false)
     }
   };
 
@@ -70,9 +71,9 @@ export default function Login({ onLogin }: LoginProps) {
 
       }
   };
-  
   checkLogin();
   }, [onLogin]);
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-muted/50">
       <Card className="w-full max-w-md">
