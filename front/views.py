@@ -1,13 +1,16 @@
+from django.views.decorators.csrf import ensure_csrf_cookie, csrf_exempt
 from django.contrib.auth import authenticate, login
 from django.http import JsonResponse
 from django.shortcuts import render
 from api import utils as u
 
 # Create your views here.
+@ensure_csrf_cookie
 def render_front(request):
     return render(request, 'index.html')
 
-def login(request):
+@csrf_exempt
+def login_view(request):
     request_error = u.handle_request_method(request, 'POST')
     if request_error:
         return request_error
@@ -15,7 +18,7 @@ def login(request):
     values = {}
     params = ['username', 'password']
     for param in params:
-        error = u.verify_param()
+        error = u.verify_param(request, 'POST', param)
         if error:
             return error
         else:
@@ -38,8 +41,9 @@ def login(request):
         "message":"user logged in successfully"
     }, status=200)
 
+@csrf_exempt
 def check_login(request):
-    request_error = u.verify_param(request, 'GET')
+    request_error = u.handle_request_method(request, 'GET')
     if request_error:
         return request_error
     
