@@ -16,10 +16,18 @@ type ExameItem = {
   data: string;
 };
 
+type DiagnosticoItem = {
+  id: string;
+  cpf: string;
+  cid: string;
+  exames: string;
+}
+
 export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<ExameItem[]>([]);
+  const [diagnosticos, setDiagnosticos] = useState<DiagnosticoItem[]>([])
   const [activeTab, setActiveTab] = useState<"exames" | "diagnosticos">("exames");
 
   const handleSearch = async () => {
@@ -36,17 +44,31 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
 
       if (response.status === 400) {
         setResults([]);
-        return;
-      }
-
-      if (!response.ok) {
+      } else if (!response.ok) {
         console.error("Erro na resposta da API", response.status);
         setResults([]);
-        return;
+      } else {
+        const data = await response.json();
+        setResults(Array.isArray(data.exames) ? data.exames : []);
       }
 
-      const data = await response.json();
-      setResults(Array.isArray(data.exames) ? data.exames : []);
+      const diagnosticos = await fetch(`/api/search/diagnosis?cpf=${encodeURI(searchTerm)}`, {
+        method: 'GET',
+        credentials: 'include',
+        headers: {
+          "Accept": "application/json",
+        },
+      });
+
+      if (diagnosticos.status === 400) {
+        setDiagnosticos([]);
+      } else if (!diagnosticos.ok) {
+        console.error("Erro na resposta da API", diagnosticos.status);
+        setResults([]);
+      } else {
+        const diagnosticosData = await diagnosticos.json();
+        setDiagnosticos(Array.isArray(diagnosticosData.diagnosticos) ? diagnosticosData.diagnosticos : [])
+      }
 
     } catch (err) {
       console.error(err);
@@ -57,8 +79,19 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
   const handleDownload = async (id: string) => {
     setIsLoading(true);
 
+    let endpoint = "";
+    if (activeTab === "exames") {
+      endpoint = "/api/download/exam"
+    } else if (activeTab === "diagnosticos") {
+      endpoint = "/api/download/diagnosis"
+    } else {
+      console.error("aba invalida", activeTab)
+      setIsLoading(false)
+      return;
+    }
+
     try {
-      const response = await fetch(`/api/download/exam?id=${encodeURI(id)}`, {
+      const response = await fetch(`${endpoint}?id=${encodeURI(id)}`, {
         method: 'GET',
         credentials: 'include',
         headers: {
@@ -82,8 +115,10 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
 
     } catch (err) {
       console.error(err);
+    } finally {
+      setIsLoading(false);
     }
-    setIsLoading(false);
+    
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -209,9 +244,31 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
         )}
 
         {/* Conteúdo da aba DIAGNÓSTICO */}
-        {results.length > 0 && activeTab === "diagnosticos" && (
-          <div>
-            {/* Conteúdo */} 
+        {diagnosticos.length > 0 && activeTab === "diagnosticos" && (
+          <div className="grid gap-4">
+            {(diagnosticos || []).map((item) => (
+              <Card key={item.id} className="hover:shadow-md transition-shadow">
+                <CardHeader>
+                <div className="flex items-start justify-between">
+                  <div>
+                    <CardTitle className="flex items-center space-x-2">
+                        <User className="h-4 w-4" />
+                        <span>{item.cid}</span>
+                      </CardTitle>
+                      <CardDescription>CPF: {item.cpf}</CardDescription>
+                  </div>
+                  <div className="flex space-x-2">
+                      <Button onClick={() => handleDownload(item.id)}>
+                        Download
+                      </Button>
+                      <Badge variant="outline" className="flex items-center space-x-1">
+                      </Badge>
+                  </div>
+                </div>
+                </CardHeader>
+              </Card>
+            ))}
+            
           </div>
         )}
       </div>
