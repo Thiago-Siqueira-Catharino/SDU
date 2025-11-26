@@ -117,7 +117,7 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
               />
             </div>
             <Button onClick={handleSearch} disabled={isLoading}>
-              {isLoading ? 'Buscando...' : 'Pesquisar'}
+              {isLoading ? "Buscando..." : "Pesquisar"}
             </Button>
           </div>
         </CardContent>
@@ -127,18 +127,24 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
       <div>
         <div className="flex items-center justify-between mb-4">
           <h3>Resultados da Pesquisa</h3>
-          <Badge variant="secondary">{results.length} registro(s) encontrado(s)</Badge>
+          <Badge variant="secondary">
+            {results.length} registro(s) encontrado(s)
+          </Badge>
         </div>
 
         {results.length === 0 ? (
           <Card>
             <CardContent className="pt-6 text-center">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">Nenhum resultado encontrado</p>
+              <p className="text-muted-foreground">
+                Nenhum resultado encontrado
+              </p>
             </CardContent>
           </Card>
         ) : (
           <div className="grid gap-4">
+            <Button>Exames</Button>
+            <Button>Diagnósticos</Button>
             {(results || []).map((item) => (
               <Card key={item.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
@@ -154,9 +160,14 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
                       <Button onClick={() => handleDownload(item.id)}>
                         Download
                       </Button>
-                      <Badge variant="outline" className="flex items-center space-x-1">
+                      <Badge
+                        variant="outline"
+                        className="flex items-center space-x-1"
+                      >
                         <Calendar className="h-3 w-3" />
-                        <span>{new Date(item.data).toLocaleDateString('pt-BR')}</span>
+                        <span>
+                          {new Date(item.data).toLocaleDateString("pt-BR")}
+                        </span>
                       </Badge>
                     </div>
                   </div>
@@ -169,7 +180,7 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
 
       {/* Botão de Voltar */}
       <div className="flex justify-end">
-        <Button variant="outline" onClick={() => onNavigate('dashboard')}>
+        <Button variant="outline" onClick={() => onNavigate("dashboard")}>
           Voltar ao Dashboard
         </Button>
       </div>
