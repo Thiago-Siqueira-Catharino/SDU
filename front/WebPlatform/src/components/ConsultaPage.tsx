@@ -9,7 +9,6 @@ interface ConsultaPageProps {
   onNavigate: (page: 'dashboard' | 'consulta' | 'upload' | 'cid') => void;
 }
 
-
 type ExameItem = {
   id: string;
   cpf: string;
@@ -17,11 +16,11 @@ type ExameItem = {
   data: string;
 };
 
-
 export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
   const [searchTerm, setSearchTerm] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<ExameItem[]>([]);
+  const [activeTab, setActiveTab] = useState<"exames" | "diagnosticos">("exames");
 
   const handleSearch = async () => {
     setIsLoading(true);
@@ -31,7 +30,7 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
         method: 'GET',
         credentials: 'include',
         headers: {
-          "Accept":"application/json",
+          "Accept": "application/json",
         },
       });
 
@@ -48,8 +47,9 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
 
       const data = await response.json();
       setResults(Array.isArray(data.exames) ? data.exames : []);
+
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
     setIsLoading(false);
   };
@@ -68,24 +68,23 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
 
       if (!response.ok) {
         console.error("Erro na resposta da API", response.status);
-        setResults([]);
         return;
       }
 
-      const data = await response.json()
+      const data = await response.json();
 
       if (!data.url) {
-        console.error("A api não retornou uma url")
+        console.error("A api não retornou uma url");
         return;
       }
 
-      window.location.href = data.url
-      
+      window.location.href = data.url;
+
     } catch (err) {
-      console.error(err)
+      console.error(err);
     }
     setIsLoading(false);
-  }
+  };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
@@ -123,28 +122,65 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
         </CardContent>
       </Card>
 
-      {/* Resultados */}
-      <div>
+      {/* Só mostra abas SE houver resultados */}
+      {results.length > 0 && (
+        <div className="flex items-center -mb-1">
+          <button
+            onClick={() => setActiveTab("exames")}
+            className={`px-4 py-2 font-medium border
+              ${activeTab === "exames" ? "bg-blue-500 text-black" : "bg-gray-200 text-black"}
+            `}
+            style={{
+              borderTopLeftRadius: 20,
+              borderBottomLeftRadius: 20,
+            }}
+          >
+            Exames
+          </button>
+
+          <button
+            onClick={() => setActiveTab("diagnosticos")}
+            className={`px-4 py-2 font-medium border rounded-r-lg
+              ${activeTab === "diagnosticos" ? "bg-blue-500 text-black" : "bg-gray-200 text-black"}
+            `}
+            style={{
+              borderTopRightRadius: 20,
+              borderBottomRightRadius: 20,
+            }}
+          >
+            Diagnóstico
+          </button>
+        </div>
+      )}
+
+      {/* Retângulo dos resultados */}
+      <div
+        className={`
+          w-full border border-black rounded-xl p-6
+          ${results.length > 0 ? "bg-[#7B0015] text-white" : ""}
+        `}
+      >
+        {/* Título sempre aparece */}
         <div className="flex items-center justify-between mb-4">
-          <h3>Resultados da Pesquisa</h3>
+          <h3 className={results.length > 0 ? "text-muted-foreground" : ""}>Resultados da Pesquisa</h3>
           <Badge variant="secondary">
             {results.length} registro(s) encontrado(s)
           </Badge>
         </div>
 
-        {results.length === 0 ? (
+        {/* Se não houver nada */}
+        {results.length === 0 && (
           <Card>
             <CardContent className="pt-6 text-center">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <p className="text-muted-foreground">
-                Nenhum resultado encontrado
-              </p>
+              <p className="text-muted-foreground">Nenhum resultado encontrado</p>
             </CardContent>
           </Card>
-        ) : (
+        )}
+
+        {/* Conteúdo da aba EXAMES */}
+        {results.length > 0 && activeTab === "exames" && (
           <div className="grid gap-4">
-            <Button>Exames</Button>
-            <Button>Diagnósticos</Button>
             {(results || []).map((item) => (
               <Card key={item.id} className="hover:shadow-md transition-shadow">
                 <CardHeader>
@@ -160,20 +196,22 @@ export default function ConsultaPage({ onNavigate }: ConsultaPageProps) {
                       <Button onClick={() => handleDownload(item.id)}>
                         Download
                       </Button>
-                      <Badge
-                        variant="outline"
-                        className="flex items-center space-x-1"
-                      >
+                      <Badge variant="outline" className="flex items-center space-x-1">
                         <Calendar className="h-3 w-3" />
-                        <span>
-                          {new Date(item.data).toLocaleDateString("pt-BR")}
-                        </span>
+                        <span>{new Date(item.data).toLocaleDateString("pt-BR")}</span>
                       </Badge>
                     </div>
                   </div>
                 </CardHeader>
               </Card>
             ))}
+          </div>
+        )}
+
+        {/* Conteúdo da aba DIAGNÓSTICO */}
+        {results.length > 0 && activeTab === "diagnosticos" && (
+          <div>
+            {/* Conteúdo */} 
           </div>
         )}
       </div>
