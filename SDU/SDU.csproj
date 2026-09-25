@@ -19,7 +19,6 @@
 
     <ItemGroup>
       <Folder Include="Common\" />
-      <Folder Include="Contexts\Auth\Domain\" />
       <Folder Include="Contexts\Auth\Infrastructure\" />
       <Folder Include="Contexts\Auth\Presentation\" />
     </ItemGroup>
