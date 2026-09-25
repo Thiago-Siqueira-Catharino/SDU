@@ -1,0 +1,6 @@
+@SDU_HostAddress = http://localhost:5067
+
+GET {{SDU_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###
