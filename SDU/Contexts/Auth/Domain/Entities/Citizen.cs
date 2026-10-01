@@ -2,7 +2,7 @@ namespace SDU.Contexts.Auth.Domain.Entities;
 
 public class Citizen : User
 {
-    private string _cpf;
+    private string? _cpf;
     
     public void SetCpf(string cpf)
     {
