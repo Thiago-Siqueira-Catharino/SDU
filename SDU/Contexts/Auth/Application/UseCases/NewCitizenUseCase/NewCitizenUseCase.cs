@@ -10,6 +10,9 @@ public class NewCitizenUseCase(UserManager<User> _UserManager)
         if (String.IsNullOrEmpty(newCitizenDto.name))
             throw new ArgumentNullException(nameof(newCitizenDto.name));
         
+        if (String.IsNullOrEmpty(newCitizenDto.email))
+            throw new ArgumentNullException(nameof(newCitizenDto.email));
+        
         if (String.IsNullOrEmpty(newCitizenDto.password))
             throw new ArgumentNullException(nameof(newCitizenDto.password));
         
@@ -22,6 +25,8 @@ public class NewCitizenUseCase(UserManager<User> _UserManager)
             Name = newCitizenDto.name,
             Email = newCitizenDto.email,
         };
+        
+        newCitizen.SetCpf(newCitizenDto.cpf);
 
         var result = await _UserManager.CreateAsync(newCitizen, newCitizenDto.password);
         
