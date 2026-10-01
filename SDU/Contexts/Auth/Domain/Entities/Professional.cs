@@ -1,6 +1,6 @@
 namespace SDU.Contexts.Auth.Domain.Entities;
 
-public class Professional
+public class Professional : User
 {
     private string _cpf;
     private string _cim;
