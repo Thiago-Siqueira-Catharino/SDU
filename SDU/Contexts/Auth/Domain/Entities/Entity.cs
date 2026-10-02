@@ -1,6 +1,6 @@
 namespace SDU.Contexts.Auth.Domain.Entities;
 
-public class Entity
+public class Entity : User
 {
     private string _cnpj;
 
