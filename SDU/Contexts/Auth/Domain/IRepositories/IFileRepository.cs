@@ -1,6 +1,9 @@
+using SDU.Contexts.Auth.Domain.Entities;
+
 namespace SDU.Contexts.Auth.Domain.IRepositories;
 
-public class IFileRepository
+public interface IFileRepository
 {
-    
+    Task AddAsync(CitizenFile file);
+    Task<CitizenFile> GetByIdAsync(Guid id);
 }

@@ -1,6 +1,6 @@
 namespace SDU.Contexts.Auth.Domain.Entities;
 
-public class File
+public class CitizenFile
 {
         public Guid Id { get; private set; }
         public Guid OwnerId { get; private set; }
@@ -13,9 +13,9 @@ public class File
         public DateTimeOffset UploadedAt { get; private set; }
         public bool IsDeleted { get; private set; }
         
-        private File() { }
+        private CitizenFile() { }
         
-        public File(
+        public CitizenFile(
             Guid ownerId, 
             Guid uploaderId, 
             string fileName, 

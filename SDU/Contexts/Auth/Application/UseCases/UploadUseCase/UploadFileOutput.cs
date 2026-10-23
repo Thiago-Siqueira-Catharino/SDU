@@ -1,7 +1,7 @@
 namespace SDU.Contexts.Auth.Application.UseCases.UploadUseCase;
 
-public class UploadDocumentOutput
+public class UploadFileOutput
 {
-    public Guid DocumentId { get; set; }
+    public Guid FileId { get; set; }
     public DateTimeOffset UploadedAt { get; set; }
 }

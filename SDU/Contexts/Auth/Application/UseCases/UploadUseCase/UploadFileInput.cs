@@ -1,6 +1,6 @@
 namespace SDU.Contexts.Auth.Application.UseCases.UploadUseCase;
 
-public class UploadDocumentInput
+public class UploadFileInput
 {
     public Guid OwnerId { get; set; }
     public Guid UploaderId { get; set; }
