@@ -20,6 +20,8 @@
 
     <ItemGroup>
       <Folder Include="Common\" />
+      <Folder Include="Contexts\Files\Application\UseCases\DownloadUseCase\" />
+      <Folder Include="Contexts\Files\Infrastructure\" />
     </ItemGroup>
 
 </Project>
