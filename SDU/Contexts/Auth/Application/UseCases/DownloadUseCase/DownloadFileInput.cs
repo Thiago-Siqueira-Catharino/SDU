@@ -1,7 +1,7 @@
 namespace SDU.Contexts.Auth.Application.UseCases.DownloadUseCase;
 
-public class DownloadDocumentInput
+public class DownloadFileInput
 {
-    public Guid DocumentId { get; set; }
+    public Guid FileId { get; set; }
     public Guid RequesterId { get; set; }
 }
