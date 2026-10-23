@@ -56,6 +56,25 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
+builder.Services.AddCors(options =>
+    options.AddDefaultPolicy(policy =>
+    {
+        policy.AllowAnyOrigin()
+            .AllowAnyMethod()
+            .AllowAnyHeader();
+    })
+);
+
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, ct) =>
+        {
+            document.Servers = [new() { Url = "/" }];
+            return Task.CompletedTask;
+        }
+    );
+});
+
 builder.Services.AddOpenApi();
 
 var app = builder.Build();
@@ -73,6 +92,8 @@ using (var scope = app.Services.CreateScope())
     }
 }
 
+app.UseForwardedHeaders();
+
 if (app.Environment.IsDevelopment())
 {
     app.MapOpenApi();
@@ -81,8 +102,10 @@ if (app.Environment.IsDevelopment())
     );
 }
 
+app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseCors();
 
 app.MapControllers();
 
