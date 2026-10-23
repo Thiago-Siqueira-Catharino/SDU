@@ -9,6 +9,7 @@ public class AuthDbContext : IdentityDbContext<User>
     public DbSet<Citizen> Citizens { get; set; }
     public DbSet<Professional> Professionals { get; set; }
     public DbSet<Entity>  Entities { get; set; }
+    public DbSet<CitizenFile> CitizenFiles { get; set; }
     public AuthDbContext(DbContextOptions options) : base(options)
     {
     }
@@ -16,5 +17,7 @@ public class AuthDbContext : IdentityDbContext<User>
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+        
+        //modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuthDbContext).Assembly);
     }
 }
