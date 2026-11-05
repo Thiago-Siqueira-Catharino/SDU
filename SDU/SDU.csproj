@@ -20,6 +20,7 @@
 
     <ItemGroup>
       <Folder Include="Common\" />
+      <Folder Include="uploads\" />
     </ItemGroup>
 
 </Project>
