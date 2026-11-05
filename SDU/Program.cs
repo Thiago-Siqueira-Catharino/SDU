@@ -12,12 +12,20 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi;
+using SDU.Contexts.Files.Application.UseCases.UploadUseCase;
+using SDU.Contexts.Files.Domain.IRepositories;
+using SDU.Contexts.Files.Infrastructure.Persistance;
+using SDU.Contexts.Files.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 var connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
 
 builder.Services.AddDbContext<AuthDbContext>(options =>
+    options.UseMySql(connectionString,ServerVersion.AutoDetect(connectionString)));
+
+builder.Services.AddDbContext<FileDbContext>(options =>
     options.UseMySql(connectionString,ServerVersion.AutoDetect(connectionString)));
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
@@ -36,6 +44,10 @@ builder.Services.AddScoped<NewCitizenUseCase>();
 builder.Services.AddScoped<NewProfessionalUseCase>();
 builder.Services.AddScoped<NewEntityUseCase>();
 builder.Services.AddScoped<LoginUseCase>();
+
+builder.Services.AddScoped<UploadUseCase>();
+builder.Services.AddScoped<IFileRepository, FileRepository>();
+
 
 builder.Services.AddAuthentication(options =>
 {
@@ -56,7 +68,31 @@ builder.Services.AddAuthentication(options =>
     };
 });
 
-builder.Services.AddOpenApi();
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, CancellationToken) =>
+    {
+        document.Components ??= new OpenApiComponents(); 
+        document.Components.SecuritySchemes = new Dictionary<string, IOpenApiSecurityScheme> 
+        { 
+            ["Bearer"] = new OpenApiSecurityScheme 
+            { 
+                Type = SecuritySchemeType.Http, 
+                Scheme = "bearer",
+                BearerFormat = "JWT"
+            }
+        };
+        
+        document.Security =
+        [
+            new OpenApiSecurityRequirement
+            {
+                [new OpenApiSecuritySchemeReference("Bearer", document)] = []
+            }
+        ];
+        return Task.CompletedTask;
+    });
+});
 
 var app = builder.Build();
 
