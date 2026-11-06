@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SDU.Contexts.Files.Application.UseCases.DownloadUseCase;
 using SDU.Contexts.Files.Application.UseCases.UploadUseCase;
 
 namespace SDU.Contexts.Files.Presentation;
@@ -8,7 +9,8 @@ namespace SDU.Contexts.Files.Presentation;
 [ApiController]
 [Route("api/[controller]")]
 public class FileController(
-    UploadUseCase _uploadUseCase
+    UploadUseCase _uploadUseCase,
+    DownloadUseCase _downloadUseCase
     ) : ControllerBase
 {
     
@@ -24,5 +26,24 @@ public class FileController(
         uploadDto =  uploadDto with{ ProfessionalId =  userId };
         await _uploadUseCase.Run(uploadDto);
         return Ok();
+    }
+
+    [HttpPost("download")]
+    [Authorize(Roles = "Entity, Professional, Citizen")]
+    public async Task<IActionResult> SendFile([FromForm] DownloadDto downloadDto)
+    {
+        try
+        {
+            var result = await _downloadUseCase.Run(downloadDto);
+            return File(result.FileStream, result.ContentType, result.FileName);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        catch (FileNotFoundException ex)
+        {
+            return NotFound(ex.Message);
+        }
     }
 }
