@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using SDU.Contexts.Files.Application.UseCases.DownloadUseCase;
 using SDU.Contexts.Files.Application.UseCases.UploadUseCase;
 using SDU.Contexts.Files.Domain.IRepositories;
 using SDU.Contexts.Files.Infrastructure.Persistance;
@@ -46,6 +47,7 @@ builder.Services.AddScoped<NewEntityUseCase>();
 builder.Services.AddScoped<LoginUseCase>();
 
 builder.Services.AddScoped<UploadUseCase>();
+builder.Services.AddScoped<DownloadUseCase>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
 
 
