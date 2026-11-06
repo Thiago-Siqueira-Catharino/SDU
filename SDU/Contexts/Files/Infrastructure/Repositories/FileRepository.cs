@@ -20,6 +20,11 @@ public class FileRepository : IFileRepository
         await _dbContext.SaveChangesAsync();
     }
 
+    public async Task<File?> GetByIdAsync(Guid id)
+    {
+        return await _dbContext.Files.FirstOrDefaultAsync(f => f.Id == id);
+    }
+
     public async Task<List<File>> GetByCitizenIdAsync(Guid citizenId)
     {
         return await _dbContext.Files.Where(f => 
