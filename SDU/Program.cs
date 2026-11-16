@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using SDU.Contexts.Appointments.Infrastructure.Persistance;
 using SDU.Contexts.Files.Application.UseCases.DownloadUseCase;
 using SDU.Contexts.Files.Application.UseCases.UploadUseCase;
 using SDU.Contexts.Files.Domain.IRepositories;
@@ -27,6 +28,9 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
     options.UseMySql(connectionString,ServerVersion.AutoDetect(connectionString)));
 
 builder.Services.AddDbContext<FileDbContext>(options =>
+    options.UseMySql(connectionString,ServerVersion.AutoDetect(connectionString)));
+
+builder.Services.AddDbContext<AppointmentDbContext>(options =>
     options.UseMySql(connectionString,ServerVersion.AutoDetect(connectionString)));
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
