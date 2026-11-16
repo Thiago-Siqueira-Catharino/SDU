@@ -36,8 +36,24 @@ public class AppointmentRepository : IAppointmentRepository
         if (filter.ProfessionalId is not null)
             query = query.Where(a => a.ProfessionId == filter.ProfessionalId);
 
-        if (filter.Date is not null)
-            query = query.Where(a => a.Date >= filter.Date);
+        if (filter.Date is DateTime date)
+        {
+            if (filter.Mode == ComparisonMode.Before)
+                query = query.Where(a => a.Date <= filter.Date);
+
+            if (filter.Mode == ComparisonMode.Around)
+            {
+                DateTime from = date.AddMinutes(-30);
+                DateTime to = date.AddMinutes(30);
+                query = query.Where(
+                    a => 
+                    a.Date > from && a.Date < to
+                    );
+            }
+
+            if (filter.Mode == ComparisonMode.After)
+                query = query.Where(a => a.Date >= filter.Date);
+        }
         
         return query.OrderBy(a => a.Date).ToListAsync();
     }
