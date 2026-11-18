@@ -10,6 +10,10 @@ public class Appointment
     public Guid ProfessionId { get; private set; }
     public Guid EntityId { get; private set; }
 
+    public Appointment()
+    {
+        
+    }
     public Appointment(
         Guid patientId,
         Guid professionId,
