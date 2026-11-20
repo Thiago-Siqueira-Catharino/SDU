@@ -14,6 +14,13 @@ public class AppointmentDbContext : DbContext
     {
         modelBuilder.Entity<Appointment>()
             .HasKey(a => a.Id);
+        
+        modelBuilder.Entity<Appointment>()
+            .Property(a => a.Status)
+            .HasConversion<string>()
+            .HasMaxLength(20)
+            .IsRequired()
+            .HasDefaultValue(AppointmentStatus.Agendado);
 
         base.OnModelCreating(modelBuilder);
     }
