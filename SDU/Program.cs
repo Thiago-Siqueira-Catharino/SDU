@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using SDU.Contexts.Appointments.Application.UseCases.CancelAppointmentUseCase;
 using SDU.Contexts.Appointments.Application.UseCases.NewAppointmentUseCase;
 using SDU.Contexts.Appointments.Domain.IRepositories;
 using SDU.Contexts.Appointments.Infrastructure.Persistance;
@@ -58,7 +59,7 @@ builder.Services.AddScoped<DownloadUseCase>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
 
 builder.Services.AddScoped<NewAppointmentUseCase>();
-
+builder.Services.AddScoped<CancelAppointmentUseCase>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 
 
