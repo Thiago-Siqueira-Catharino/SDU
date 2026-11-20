@@ -10,26 +10,58 @@ public class NewAppointmentUseCase
     {
         _appointmentRepository = appointmentRepository;
     }
-    
+
+    private async Task<bool> CitizenHasAppointmentAround(Guid citizenId, DateTime date)
+    {
+        AppointmentFilter filter = new AppointmentFilter(
+            CitizenId: citizenId,
+            Date: date,
+            Mode: ComparisonMode.Around
+        );
+
+        List<Appointment> found = await _appointmentRepository.GetWithFilterAsync(filter);
+        return found.Count > 0;
+    }
+
+    private async Task<bool> ProfessionalHasAppointmentAround(Guid professionalId, DateTime date)
+    {
+        AppointmentFilter filter = new AppointmentFilter(
+            ProfessionalId: professionalId,
+            Date: date,
+            Mode: ComparisonMode.Around
+        );
+
+        List<Appointment> found = await _appointmentRepository.GetWithFilterAsync(filter);
+        return found.Count > 0;
+    }
+
     public async Task Run(NewAppointmentDto dto)
     {
-        Guid patient_Id = dto.PatientId;
-        if (patient_Id ==  Guid.Empty || patient_Id == null)
-            throw new ArgumentException($"{nameof(dto.PatientId)} cannot be null or empty");
-        
-        Guid profession_Id = dto.ProfessionId;
-        if (profession_Id ==  Guid.Empty || profession_Id == null)
-            throw new ArgumentException($"{nameof(dto.ProfessionId)} cannot be null or empty");
-        
-        Guid entity_Id = dto.EntityId;
-        if (entity_Id ==  Guid.Empty || entity_Id == null)
-            throw new ArgumentException($"{nameof(dto.EntityId)} cannot be null or empty");
-        
+        Guid patientId = dto.PatientId;
+        if (patientId == Guid.Empty)
+            throw new ArgumentException($"{nameof(dto.PatientId)} cannot be empty");
+
+        Guid professionalId = dto.ProfessionalId;
+        if (professionalId == Guid.Empty)
+            throw new ArgumentException($"{nameof(dto.ProfessionalId)} cannot be empty");
+
+        Guid entityId = dto.EntityId;
+        if (entityId == Guid.Empty)
+            throw new ArgumentException($"{nameof(dto.EntityId)} cannot be empty");
+
         DateTime date = dto.Date;
-        if (date == default(DateTime) || date == null)
-            throw new ArgumentException($"{nameof(date)} cannot be null or empty");
-        
-        Appointment toSave = new Appointment(patient_Id, profession_Id, entity_Id, dto.Date);
+        if (date == default(DateTime))
+            throw new ArgumentException($"{nameof(dto.Date)} cannot be empty");
+
+        bool citizenBusy = await CitizenHasAppointmentAround(patientId, date);
+        if (citizenBusy)
+            throw new InvalidOperationException("O paciente já tem uma consulta próxima a esse horário");
+
+        bool professionalBusy = await ProfessionalHasAppointmentAround(professionalId, date);
+        if (professionalBusy)
+            throw new InvalidOperationException("O profissional já tem uma consulta próxima a esse horário");
+
+        Appointment toSave = new Appointment(patientId, professionalId, entityId, date);
         await _appointmentRepository.AddAsync(toSave);
     }
 }
