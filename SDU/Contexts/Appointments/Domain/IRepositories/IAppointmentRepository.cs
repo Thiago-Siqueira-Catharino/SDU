@@ -8,5 +8,5 @@ public interface IAppointmentRepository
     Task RemoveAsync(Guid appointmentId);
     Task<Appointment?> GetByIdAsync(Guid appointmentId);
     Task SaveChangesAsync();
-    Task<List<Appointment>> GetWithFilterAsync(AppointmentFilter citizenId);
+    Task<List<Appointment>> GetWithFilterAsync(AppointmentFilter filter);
 }
