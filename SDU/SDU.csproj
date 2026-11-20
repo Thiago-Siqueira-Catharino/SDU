@@ -20,7 +20,6 @@
 
     <ItemGroup>
       <Folder Include="Common\" />
-      <Folder Include="Contexts\Appointments\Application\UseCases\" />
       <Folder Include="uploads\" />
     </ItemGroup>
 
