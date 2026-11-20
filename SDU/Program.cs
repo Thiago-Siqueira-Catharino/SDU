@@ -15,6 +15,7 @@ using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using SDU.Contexts.Appointments.Application.UseCases.CancelAppointmentUseCase;
 using SDU.Contexts.Appointments.Application.UseCases.NewAppointmentUseCase;
+using SDU.Contexts.Appointments.Application.UseCases.SearchAppointmentsUseCase;
 using SDU.Contexts.Appointments.Domain.IRepositories;
 using SDU.Contexts.Appointments.Infrastructure.Persistance;
 using SDU.Contexts.Appointments.Infrastructure.Repositories;
@@ -60,6 +61,7 @@ builder.Services.AddScoped<IFileRepository, FileRepository>();
 
 builder.Services.AddScoped<NewAppointmentUseCase>();
 builder.Services.AddScoped<CancelAppointmentUseCase>();
+builder.Services.AddScoped<SearchAppointmentsUseCase>();
 builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 
 

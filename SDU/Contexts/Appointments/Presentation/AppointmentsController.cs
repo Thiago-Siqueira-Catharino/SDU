@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SDU.Contexts.Appointments.Application.UseCases.CancelAppointmentUseCase;
 using SDU.Contexts.Appointments.Application.UseCases.NewAppointmentUseCase;
+using SDU.Contexts.Appointments.Application.UseCases.SearchAppointmentsUseCase;
+using SDU.Contexts.Appointments.Domain.IRepositories;
 
 namespace SDU.Contexts.Appointments.Presentation;
 
@@ -10,15 +12,23 @@ namespace SDU.Contexts.Appointments.Presentation;
 [Route("api/[controller]")]
 public class AppointmentsController(
     NewAppointmentUseCase _newAppointmentUseCase,
-    CancelAppointmentUseCase _cancelAppointmentUseCase
+    CancelAppointmentUseCase _cancelAppointmentUseCase,
+    SearchAppointmentsUseCase _searchAppointmentUseCase
     ) : ControllerBase
 {
     [HttpPost("new")]
     [Authorize(Roles = "Professional")]
     public async Task<IActionResult> NewAppointment(NewAppointmentDto dto)
     {
-        await _newAppointmentUseCase.Run(dto);
-        return Ok();
+        try
+        {
+            await _newAppointmentUseCase.Run(dto);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpPost("cancel")]
@@ -31,8 +41,31 @@ public class AppointmentsController(
 
         if (!Guid.TryParse(userIdStr, out Guid userId))
             return Unauthorized();
+
+        try
+        {
+            await _cancelAppointmentUseCase.Run(toCancelId, userId);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
         
-        await _cancelAppointmentUseCase.Run(toCancelId, userId);
-        return Ok();
+    }
+
+    [HttpPost("search")]
+    [Authorize]
+    public async Task<IActionResult> SearchAppointments([FromBody] AppointmentFilter filter)
+    {
+        try
+        {
+            return Ok(await _searchAppointmentUseCase.Run(filter));
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+        
     }
 }
