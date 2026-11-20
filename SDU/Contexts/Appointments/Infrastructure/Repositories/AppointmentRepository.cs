@@ -26,6 +26,16 @@ public class AppointmentRepository : IAppointmentRepository
         await _dbContext.SaveChangesAsync();
     }
 
+    public async Task<Appointment?> GetByIdAsync(Guid appointmentId)
+    {
+        return await _dbContext.Appointments.FindAsync(appointmentId);
+    }
+
+    public async Task SaveChangesAsync()
+    {
+        await _dbContext.SaveChangesAsync();
+    }
+
     public Task<List<Appointment>> GetWithFilterAsync(AppointmentFilter filter)
     {
         IQueryable<Appointment> query = _dbContext.Appointments.AsNoTracking();
@@ -34,7 +44,7 @@ public class AppointmentRepository : IAppointmentRepository
             query = query.Where(a => a.CitizenId == filter.CitizenId);
 
         if (filter.ProfessionalId is not null)
-            query = query.Where(a => a.ProfessionId == filter.ProfessionalId);
+            query = query.Where(a => a.ProfessionalId == filter.ProfessionalId);
 
         if (filter.Date is DateTime date)
         {
