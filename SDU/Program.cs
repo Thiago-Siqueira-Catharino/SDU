@@ -1,4 +1,5 @@
 using System.Text;
+using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using SDU.Contexts.Auth.Application.UseCases.LoginUseCase;
@@ -13,6 +14,14 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
+using SDU.Contexts.Appointments.Application.UseCases.CancelAppointmentUseCase;
+using SDU.Contexts.Appointments.Application.UseCases.CompleteAppointmentUseCase;
+using SDU.Contexts.Appointments.Application.UseCases.NewAppointmentUseCase;
+using SDU.Contexts.Appointments.Application.UseCases.SearchAppointmentsUseCase;
+using SDU.Contexts.Appointments.Application.UseCases.SearchOwnAppointments;
+using SDU.Contexts.Appointments.Domain.IRepositories;
+using SDU.Contexts.Appointments.Infrastructure.Persistance;
+using SDU.Contexts.Appointments.Infrastructure.Repositories;
 using SDU.Contexts.Files.Application.UseCases.DownloadUseCase;
 using SDU.Contexts.Files.Application.UseCases.UploadUseCase;
 using SDU.Contexts.Files.Domain.IRepositories;
@@ -28,9 +37,16 @@ builder.Services.AddDbContext<AuthDbContext>(options =>
 
 builder.Services.AddDbContext<FileDbContext>(options =>
     options.UseMySql(connectionString,ServerVersion.AutoDetect(connectionString)));
+
+builder.Services.AddDbContext<AppointmentDbContext>(options =>
+    options.UseMySql(connectionString,ServerVersion.AutoDetect(connectionString)));
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 //Auth context setup
@@ -49,6 +65,13 @@ builder.Services.AddScoped<LoginUseCase>();
 builder.Services.AddScoped<UploadUseCase>();
 builder.Services.AddScoped<DownloadUseCase>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
+
+builder.Services.AddScoped<NewAppointmentUseCase>();
+builder.Services.AddScoped<CancelAppointmentUseCase>();
+builder.Services.AddScoped<CompleteAppointmentUseCase>();
+builder.Services.AddScoped<SearchAppointmentsUseCase>();
+builder.Services.AddScoped<SearchOwnAppointmentsUseCase>();
+builder.Services.AddScoped<IAppointmentRepository, AppointmentRepository>();
 
 
 builder.Services.AddAuthentication(options =>
