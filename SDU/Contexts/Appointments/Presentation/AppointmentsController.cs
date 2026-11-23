@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using SDU.Contexts.Appointments.Application.UseCases.CancelAppointmentUseCase;
 using SDU.Contexts.Appointments.Application.UseCases.NewAppointmentUseCase;
+using SDU.Contexts.Appointments.Application.UseCases.CompleteAppointmentUseCase;
 using SDU.Contexts.Appointments.Application.UseCases.SearchAppointmentsUseCase;
 using SDU.Contexts.Appointments.Domain.IRepositories;
 
@@ -13,6 +14,7 @@ namespace SDU.Contexts.Appointments.Presentation;
 public class AppointmentsController(
     NewAppointmentUseCase _newAppointmentUseCase,
     CancelAppointmentUseCase _cancelAppointmentUseCase,
+    CompleteAppointmentUseCase _completeAppointmentUseCase,
     SearchAppointmentsUseCase _searchAppointmentUseCase
     ) : ControllerBase
 {
@@ -52,6 +54,28 @@ public class AppointmentsController(
             return BadRequest(e.Message);
         }
         
+    }
+
+    [HttpPost("complete")]
+    [Authorize(Roles = "Professional, Entity")]
+    public async Task<IActionResult> CompleteAppointment(Guid toCompleteId)
+    {
+        var userIdStr = User.FindAll(ClaimTypes.NameIdentifier)
+            .Select(c => c.Value)
+            .FirstOrDefault(v => Guid.TryParse(v, out _));
+        
+        if (!Guid.TryParse(userIdStr, out Guid userId))
+            return Unauthorized();
+
+        try
+        {
+            await _completeAppointmentUseCase.Run(toCompleteId, userId);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
     }
 
     [HttpPost("search")]
