@@ -45,13 +45,22 @@ public class AppointmentRepository : IAppointmentRepository
 
         if (filter.ProfessionalId is not null)
             query = query.Where(a => a.ProfessionalId == filter.ProfessionalId);
+        
+        if (filter.EntityId is not null)
+            query = query.Where(a => a.EntityId == filter.EntityId);
+        
+        if (filter.Status is not null)
+            query = query.Where(a => a.Status == filter.Status);
 
-        if (filter.Date is DateTime date)
+        if (filter.Date is DateTime && filter.Mode is null)
+            throw new ArgumentException("Selecione um modo de filtro por datas");
+        
+        if (filter.Date is DateTime date && filter.Mode is ComparisonMode mode)
         {
-            if (filter.Mode == ComparisonMode.Before)
+            if (mode == ComparisonMode.Before)
                 query = query.Where(a => a.Date <= filter.Date);
 
-            if (filter.Mode == ComparisonMode.Around)
+            if (mode == ComparisonMode.Around)
             {
                 DateTime from = date.AddMinutes(-30);
                 DateTime to = date.AddMinutes(30);
@@ -61,7 +70,7 @@ public class AppointmentRepository : IAppointmentRepository
                     );
             }
 
-            if (filter.Mode == ComparisonMode.After)
+            if (mode == ComparisonMode.After)
                 query = query.Where(a => a.Date >= filter.Date);
         }
         
