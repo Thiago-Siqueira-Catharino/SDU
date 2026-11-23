@@ -5,6 +5,7 @@ using SDU.Contexts.Appointments.Application.UseCases.CancelAppointmentUseCase;
 using SDU.Contexts.Appointments.Application.UseCases.NewAppointmentUseCase;
 using SDU.Contexts.Appointments.Application.UseCases.CompleteAppointmentUseCase;
 using SDU.Contexts.Appointments.Application.UseCases.SearchAppointmentsUseCase;
+using SDU.Contexts.Appointments.Application.UseCases.SearchOwnAppointments;
 using SDU.Contexts.Appointments.Domain.IRepositories;
 
 namespace SDU.Contexts.Appointments.Presentation;
@@ -15,7 +16,8 @@ public class AppointmentsController(
     NewAppointmentUseCase _newAppointmentUseCase,
     CancelAppointmentUseCase _cancelAppointmentUseCase,
     CompleteAppointmentUseCase _completeAppointmentUseCase,
-    SearchAppointmentsUseCase _searchAppointmentUseCase
+    SearchAppointmentsUseCase _searchAppointmentUseCase,
+    SearchOwnAppointmentsUseCase _searchOwnAppointmentUseCase
     ) : ControllerBase
 {
     [HttpPost("new")]
@@ -91,5 +93,32 @@ public class AppointmentsController(
             return BadRequest(e.Message);
         }
         
+    }
+
+    [HttpPost("search/own")]
+    [Authorize]
+    public async Task<IActionResult> SearchOwnAppointments([FromBody] SearchOwnAppointmentsDto dto)
+    {
+        var userIdStr = User.FindAll(ClaimTypes.NameIdentifier)
+            .Select(c => c.Value)
+            .FirstOrDefault(v => Guid.TryParse(v, out _));
+        
+        if (!Guid.TryParse(userIdStr, out Guid userId))
+            return Unauthorized();
+        
+        string? role = User.FindFirstValue(ClaimTypes.Role);
+        if (string.IsNullOrEmpty(role))
+            return Unauthorized();
+
+        try
+        {
+            var appointments = await _searchOwnAppointmentUseCase.Run(dto, userId, role);
+            return Ok(appointments);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine(e);
+            throw;
+        }
     }
 }
