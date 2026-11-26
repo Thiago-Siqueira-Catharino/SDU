@@ -1,3 +1,4 @@
+using SDU.Contexts.Auth.Contracts;
 using SDU.Contexts.Files.Domain.IRepositories;
 using File = SDU.Contexts.Files.Domain.Entities.File;
 
@@ -6,9 +7,14 @@ namespace SDU.Contexts.Files.Application.UseCases.UploadUseCase;
 public class UploadUseCase
 {
     private readonly IFileRepository _fileRepository;
-    public UploadUseCase(IFileRepository fileRepository)
+    private readonly IAuthModuleApi _authModuleApi;
+    public UploadUseCase(
+        IFileRepository fileRepository,
+        IAuthModuleApi authModuleApi
+        )
     {
         _fileRepository = fileRepository;
+        _authModuleApi = authModuleApi;
     }
     
     private static readonly HashSet<String> ValidTypes = [
@@ -81,10 +87,15 @@ public class UploadUseCase
        if (!Guid.TryParse(uploadDto.CivilianId, out Guid citizenId) ||  citizenId == Guid.Empty)
            throw new ArgumentException("Citizen id inválido");
        
+       Guid? entityId = await _authModuleApi.GetEntityIdByProfessionalIdAsync(professionalId: uploadDto.ProfessionalId);
+       if (entityId == null || entityId == Guid.Empty)
+           throw new ArgumentException("Id de entidade inválido, verifique seu cadastro");
+       
        //Tenta montar o novo objeto para salvar no DB
        File toSave = new File(
            uploaderId: uploadId, 
            citizenId: citizenId, 
+           entityId: entityId.Value,
            path: fullPath
            );
        if (toSave == null)
@@ -108,6 +119,8 @@ public class UploadUseCase
            Console.WriteLine(e);
            throw;
        }
+        
        
+       await _authModuleApi.RegisterFileUploadAsync(entityId.Value, file.Length);
     }
 }
