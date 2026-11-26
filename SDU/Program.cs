@@ -8,10 +8,7 @@ using SDU.Contexts.Auth.Application.UseCases.NewEntityUseCase;
 using SDU.Contexts.Auth.Application.UseCases.NewProfessionalUseCase;
 using SDU.Contexts.Auth.Domain.Entities;
 using SDU.Contexts.Auth.Infrastructure.Persistance;
-
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Identity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using SDU.Contexts.Appointments.Application.UseCases.CancelAppointmentUseCase;
@@ -22,11 +19,18 @@ using SDU.Contexts.Appointments.Application.UseCases.SearchOwnAppointments;
 using SDU.Contexts.Appointments.Domain.IRepositories;
 using SDU.Contexts.Appointments.Infrastructure.Persistance;
 using SDU.Contexts.Appointments.Infrastructure.Repositories;
+using SDU.Contexts.Auth.Application.UseCases.GetDashboardStats;
+using SDU.Contexts.Auth.Application.UseCases.GetProfessionals;
+using SDU.Contexts.Auth.Application.UseCases.IncrementEntityCounterUseCase;
+using SDU.Contexts.Auth.Contracts;
+using SDU.Contexts.Auth.Domain.IRepositories;
+using SDU.Contexts.Auth.Infrastructure.Repositories;
+using SDU.Contexts.Auth.Infrastructure.Services;
 using SDU.Contexts.Files.Application.UseCases.DownloadUseCase;
 using SDU.Contexts.Files.Application.UseCases.UploadUseCase;
-using SDU.Contexts.Files.Domain.IRepositories;
 using SDU.Contexts.Files.Infrastructure.Persistance;
-using SDU.Contexts.Files.Infrastructure.Repositories;
+using FileRepository = SDU.Contexts.Files.Infrastructure.Repositories.FileRepository;
+using IFileRepository = SDU.Contexts.Files.Domain.IRepositories.IFileRepository;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -61,6 +65,12 @@ builder.Services.AddScoped<NewCitizenUseCase>();
 builder.Services.AddScoped<NewProfessionalUseCase>();
 builder.Services.AddScoped<NewEntityUseCase>();
 builder.Services.AddScoped<LoginUseCase>();
+builder.Services.AddScoped<GetDashboardStatsUseCase>();
+builder.Services.AddScoped<IncrementEntityCounterUseCase>();
+builder.Services.AddScoped<GetProfessionalsUseCase>();
+builder.Services.AddScoped<IAuthModuleApi, AuthModuleApi>();
+builder.Services.AddScoped<IEntityRepository, EntityRepository>();
+builder.Services.AddScoped<IProfessionalRepository, ProfessionalRepository>();
 
 builder.Services.AddScoped<UploadUseCase>();
 builder.Services.AddScoped<DownloadUseCase>();

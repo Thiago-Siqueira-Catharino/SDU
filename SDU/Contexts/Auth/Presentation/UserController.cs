@@ -1,5 +1,8 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SDU.Contexts.Auth.Application.UseCases.GetDashboardStats;
+using SDU.Contexts.Auth.Application.UseCases.GetProfessionals;
 using SDU.Contexts.Auth.Application.UseCases.LoginUseCase;
 using SDU.Contexts.Auth.Application.UseCases.NewCitizenUseCase;
 using SDU.Contexts.Auth.Application.UseCases.NewEntityUseCase;
@@ -13,7 +16,9 @@ public class UserController (
     LoginUseCase loginUseCase,
     NewCitizenUseCase newCitizen,
     NewProfessionalUseCase newProfessional,
-    NewEntityUseCase newEntity
+    NewEntityUseCase newEntity,
+    GetDashboardStatsUseCase getDashboardStatsUseCase,
+    GetProfessionalsUseCase getProfessionalsUseCase
     ) : ControllerBase
 {
     [HttpPost("login")]
@@ -38,7 +43,14 @@ public class UserController (
     [HttpPost("register/professional")]
     public async Task<IActionResult> ProfessionalSignup(NewProfessionalDto newProfessionalDto)
     {
-        await newProfessional.Run(newProfessionalDto);
+        var userIdStr = User.FindAll(ClaimTypes.NameIdentifier)
+            .Select(c => c.Value)
+            .FirstOrDefault(v => Guid.TryParse(v, out _));
+        
+        if (!Guid.TryParse(userIdStr, out Guid userId))
+            return Unauthorized();
+        
+        await newProfessional.Run(newProfessionalDto, userId);
         return Ok();
     }
 
@@ -47,5 +59,33 @@ public class UserController (
     {
         await newEntity.Run(newEntityDto);
         return Ok();
+    }
+
+    [Authorize(Roles = "Entity")]
+    [HttpGet("entity/getdashboard")]
+    public async Task<IActionResult> GetDashboardStats()
+    {
+        var userIdStr = User.FindAll(ClaimTypes.NameIdentifier)
+            .Select(c => c.Value)
+            .FirstOrDefault(v => Guid.TryParse(v, out _));
+        
+        if (!Guid.TryParse(userIdStr, out Guid userId))
+            return Unauthorized();
+        
+        return Ok(await getDashboardStatsUseCase.Run(userId));
+    }
+
+    [Authorize(Roles = "Entity")]
+    [HttpGet("entity/getprofessionals")]
+    public async Task<IActionResult> GetProfessionals()
+    {
+        var userIdStr = User.FindAll(ClaimTypes.NameIdentifier)
+            .Select(c => c.Value)
+            .FirstOrDefault(v => Guid.TryParse(v, out _));
+        
+        if (!Guid.TryParse(userIdStr, out Guid userId))
+            return Unauthorized();
+
+        return Ok(await getProfessionalsUseCase.Run(userId.ToString()));
     }
 }
