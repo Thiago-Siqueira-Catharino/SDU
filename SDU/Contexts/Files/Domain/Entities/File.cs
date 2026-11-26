@@ -4,6 +4,7 @@ public class File
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
     private Guid _uploaderId;
+    private Guid _entityId;
     private Guid _citizenId;
     public string Path { get; private set; }
 
@@ -27,6 +28,16 @@ public class File
         return _citizenId;
     }
 
+    private void SetEntityId(Guid entityId)
+    {
+        _entityId = entityId;
+    }
+
+    private Guid GetEntityId()
+    {
+        return _entityId;
+    }
+
     public File()
     {
         
@@ -35,6 +46,7 @@ public class File
     public File(
         Guid uploaderId,
         Guid citizenId,
+        Guid entityId,
         string path
         )
     {
@@ -43,6 +55,9 @@ public class File
 
         if (citizenId == Guid.Empty)
             throw new ArgumentException("O ID do cidadão não pode ser vazio", nameof(citizenId));
+        
+        if (entityId == Guid.Empty)
+            throw new ArgumentException("O ID da isntituição não pode ser vazio", nameof(entityId));
         
         if (String.IsNullOrEmpty(path))
             throw new ArgumentException("Caminho de arquivo necessário", nameof(path));
