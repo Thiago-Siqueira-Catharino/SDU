@@ -17,13 +17,17 @@ public class FileController(
     [HttpPost("upload")]
     [Consumes("multipart/form-data")]
     [Authorize(Roles = "Entity, Professional")]
-    public async Task<IActionResult> ReceiveFile([FromForm] UploadDto uploadDto)
+    public async Task<IActionResult> ReceiveFile([FromForm] string CivilianId, IFormFile file)
     {
         var userId = User.FindAll(ClaimTypes.NameIdentifier)
             .Select(c => c.Value)
             .FirstOrDefault(v => Guid.TryParse(v, out _));
         
-        uploadDto =  uploadDto with{ ProfessionalId =  userId };
+        var uploadDto =  new UploadDto(
+            userId,
+            CivilianId,
+            file
+            );
         await _uploadUseCase.Run(uploadDto);
         return Ok();
     }
