@@ -16,6 +16,12 @@ public class AuthDbContext : IdentityDbContext<User>
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        
+        modelBuilder.Entity<Professional>()
+            .Property<Guid>("_entityId")
+            .HasColumnName("EntityId")
+            .IsRequired();
+        
         base.OnModelCreating(modelBuilder);
         
         //modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuthDbContext).Assembly);
