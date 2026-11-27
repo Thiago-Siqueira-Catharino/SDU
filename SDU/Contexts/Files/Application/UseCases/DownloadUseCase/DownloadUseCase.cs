@@ -16,8 +16,11 @@ public class DownloadUseCase
         //_storageService = storageService;
     }
 
-    public async Task<DownloadResultDto> Run(DownloadDto dto)
+    public async Task<DownloadResultDto> Run(DownloadDto dto, Guid userId, string userType)
     {
+        if (userType == string.Empty)
+            throw new ArgumentException("O tipo de usuário não pode ser vazio");
+        
         if (!Guid.TryParse(dto.FileId, out Guid filedId))
             throw new ArgumentException("Guid inválido");
         
@@ -25,12 +28,15 @@ public class DownloadUseCase
         if (file == null)
             throw new FileNotFoundException("O arquivo requisitado não exite no banco");
 
+        if (userType == "Citizen" && userId != file.GetCitizenId())
+            throw new ArgumentException("Você não tem autorização para baixar este arquivo");
+        
         var path = file.Path;
         if (String.IsNullOrWhiteSpace(path))
-            throw new ArgumentException("O caminho do araquivo requisitado não exite");
+            throw new ArgumentException("O caminho do araquivo requisitado não existe");
         
         if (!System.IO.File.Exists(path))
-            throw new FileNotFoundException("O arquivo requisitado não exite no disco");
+            throw new FileNotFoundException("O arquivo requisitado não existe");
         
         var stream = new FileStream(path, FileMode.Open, FileAccess.Read);
         var name = Path.GetFileName(path);
