@@ -25,6 +25,11 @@ public class FileDbContext : DbContext
             .Property<Guid>("_uploaderId")
             .HasColumnName("UploaderId")
             .IsRequired();
+        
+        modelBuilder.Entity<File>()
+            .Property<Guid>("_enitityId")
+            .HasColumnName("EntityId")
+            .IsRequired();
 
         modelBuilder.Entity<File>()
             .HasDiscriminator<string>("FileType")
