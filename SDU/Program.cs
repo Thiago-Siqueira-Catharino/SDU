@@ -9,6 +9,7 @@ using SDU.Contexts.Auth.Application.UseCases.NewProfessionalUseCase;
 using SDU.Contexts.Auth.Domain.Entities;
 using SDU.Contexts.Auth.Infrastructure.Persistance;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using SDU.Contexts.Appointments.Application.UseCases.CancelAppointmentUseCase;
@@ -140,7 +141,29 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy
+            .WithOrigins(
+                "https://recess-mop-awoke.ngrok-free.dev",
+                "http://localhost:3000",
+                "http://localhost:5173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+app.UseCors();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -163,9 +186,20 @@ if (app.Environment.IsDevelopment())
     );
 }
 
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/openapi/v1.json", "API v1");
+    options.UseRequestInterceptor(@"(req) => {
+        req.headers['ngrok-skip-browser-warning'] = 'true';
+        return req;
+    }");
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();
