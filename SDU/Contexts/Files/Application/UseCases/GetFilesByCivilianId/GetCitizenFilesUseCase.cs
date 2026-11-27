@@ -24,7 +24,9 @@ public class GetCitizenFilesUseCase
         List<GetCitizenFilesResponseDto> response = new List<GetCitizenFilesResponseDto>();
         foreach (var file in files)
         {
-            response.Add(new GetCitizenFilesResponseDto(file.Id, file.GetType().Name));
+            response.Add(
+                new GetCitizenFilesResponseDto(file.Id, file.GetType().Name, file.UploadDate)
+            );
         }
         return response;
     }
