@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SDU.Contexts.Auth.Application.UseCases.GetAllProfessionals;
 using SDU.Contexts.Auth.Application.UseCases.GetCitizens;
 using SDU.Contexts.Auth.Application.UseCases.GetDashboardStats;
+using SDU.Contexts.Auth.Application.UseCases.GetEntities;
 using SDU.Contexts.Auth.Application.UseCases.GetProfessionals;
 using SDU.Contexts.Auth.Application.UseCases.LoginUseCase;
 using SDU.Contexts.Auth.Application.UseCases.NewCitizenUseCase;
@@ -22,7 +23,8 @@ public class UserController (
     GetDashboardStatsUseCase getDashboardStatsUseCase,
     GetProfessionalsUseCase getProfessionalsUseCase,
     GetAllProfessionalsUseCase getAllProfessionalsUseCase,
-    GetCitizensUseCase getCitizensUseCase
+    GetCitizensUseCase getCitizensUseCase,
+    GetEntitiesUseCase getEntitiesUseCase
     ) : ControllerBase
 {
     [HttpPost("login")]
@@ -104,5 +106,11 @@ public class UserController (
     public async Task<IActionResult> GetCitizens([FromQuery] GetCitizensRequestDto request)
     {
         return Ok(await getCitizensUseCase.Run(request));
+    }
+
+    [HttpGet("registered/entities")]
+    public async Task<IActionResult> GetEntities([FromQuery] GetEntitiesRequestDto request)
+    {
+        return Ok(await getEntitiesUseCase.Run(request));
     }
 }
