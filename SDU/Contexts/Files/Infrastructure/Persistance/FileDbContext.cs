@@ -20,6 +20,9 @@ public class FileDbContext : DbContext
             .Property<Guid>("_citizenId")
             .HasColumnName("CitizenId")
             .IsRequired();
+
+        modelBuilder.Entity<File>()
+            .HasIndex("_citizenId");
             
         modelBuilder.Entity<File>()
             .Property<Guid>("_uploaderId")
@@ -35,6 +38,10 @@ public class FileDbContext : DbContext
             .HasDiscriminator<string>("FileType")
             .HasValue<Diagnostic>("Diagnostic")
             .HasValue<Exam>("Exam");
+        
+        modelBuilder.Entity<File>()
+            .Property(f => f.UploadDate)
+            .IsRequired();
         
         base.OnModelCreating(modelBuilder); 
     }
