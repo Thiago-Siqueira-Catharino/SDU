@@ -6,6 +6,7 @@ public abstract class File
     private Guid _uploaderId;
     private Guid _entityId;
     private Guid _citizenId;
+    public DateTime UploadDate { get; private set; } =  DateTime.UtcNow;
     public string Path { get; private set; }
 
     private void SetUploaderId(Guid userId)
