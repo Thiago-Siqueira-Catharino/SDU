@@ -4,11 +4,11 @@ using File = SDU.Contexts.Files.Domain.Entities.File;
 
 namespace SDU.Contexts.Files.Application.UseCases.UploadUseCase;
 
-public class UploadUseCase
+public abstract class UploadUseCase<TDto> where TDto : UploadDto
 {
     private readonly IFileRepository _fileRepository;
     private readonly IAuthModuleApi _authModuleApi;
-    public UploadUseCase(
+    protected UploadUseCase(
         IFileRepository fileRepository,
         IAuthModuleApi authModuleApi
         )
@@ -30,6 +30,14 @@ public class UploadUseCase
         ".doc",
         ".docx"
     ];
+
+    protected abstract File BuildFile(
+        TDto dto, 
+        Guid uploaderId, 
+        Guid citizenId, 
+        Guid entityId, 
+        string path
+    );
     private Boolean TooBig(IFormFile file)
     {
         const long maxSize = 50 * 1024 * 1024;
@@ -58,7 +66,7 @@ public class UploadUseCase
         return $"{Guid.NewGuid()}{extension}";
     }
     
-    public async Task Run(UploadDto uploadDto)
+    public async Task Run(TDto uploadDto)
     {
         //puxa o arquivo do DTO
        IFormFile file = uploadDto.File;
@@ -92,12 +100,7 @@ public class UploadUseCase
            throw new ArgumentException("Id de entidade inválido, verifique seu cadastro");
        
        //Tenta montar o novo objeto para salvar no DB
-       File toSave = new File(
-           uploaderId: uploadId, 
-           citizenId: citizenId, 
-           entityId: entityId.Value,
-           path: fullPath
-           );
+       File toSave = BuildFile(uploadDto, uploadId, citizenId, entityId.Value, fullPath);
        if (toSave == null)
            throw new ArgumentException("Erro ao montar objeto");
        
