@@ -61,12 +61,29 @@ public class FileController(
     }
 
     [HttpPost("download")]
-    [Authorize(Roles = "Entity, Professional, Citizen")]
+    [Authorize(Roles = "Professional, Citizen")]
     public async Task<IActionResult> SendFile([FromForm] DownloadDto downloadDto)
     {
+        var userIdStr = User.FindAll(ClaimTypes.NameIdentifier)
+            .Select(c => c.Value)
+            .FirstOrDefault(v => Guid.TryParse(v, out _));
+
+        if (string.IsNullOrEmpty(userIdStr))
+            return Unauthorized();
+        
+        if (!Guid.TryParse(userIdStr, out Guid userGuid))
+            return Unauthorized();
+        
+        string userType = string.Empty;
+        if (User.IsInRole("Professional")) 
+            userType = "Professional";
+        
+        if (User.IsInRole("Citizen")) 
+            userType = "Citizen";
+        
         try
         {
-            var result = await _downloadUseCase.Run(downloadDto);
+            var result = await _downloadUseCase.Run(downloadDto, userGuid, userType);
             return File(result.FileStream, result.ContentType, result.FileName);
         }
         catch (ArgumentException ex)
