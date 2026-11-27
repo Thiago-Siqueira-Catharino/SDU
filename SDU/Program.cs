@@ -9,6 +9,7 @@ using SDU.Contexts.Auth.Application.UseCases.NewProfessionalUseCase;
 using SDU.Contexts.Auth.Domain.Entities;
 using SDU.Contexts.Auth.Infrastructure.Persistance;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi;
 using SDU.Contexts.Appointments.Application.UseCases.CancelAppointmentUseCase;
@@ -19,7 +20,10 @@ using SDU.Contexts.Appointments.Application.UseCases.SearchOwnAppointments;
 using SDU.Contexts.Appointments.Domain.IRepositories;
 using SDU.Contexts.Appointments.Infrastructure.Persistance;
 using SDU.Contexts.Appointments.Infrastructure.Repositories;
+using SDU.Contexts.Auth.Application.UseCases.GetAllProfessionals;
+using SDU.Contexts.Auth.Application.UseCases.GetCitizens;
 using SDU.Contexts.Auth.Application.UseCases.GetDashboardStats;
+using SDU.Contexts.Auth.Application.UseCases.GetEntities;
 using SDU.Contexts.Auth.Application.UseCases.GetProfessionals;
 using SDU.Contexts.Auth.Application.UseCases.IncrementEntityCounterUseCase;
 using SDU.Contexts.Auth.Contracts;
@@ -70,9 +74,13 @@ builder.Services.AddScoped<LoginUseCase>();
 builder.Services.AddScoped<GetDashboardStatsUseCase>();
 builder.Services.AddScoped<IncrementEntityCounterUseCase>();
 builder.Services.AddScoped<GetProfessionalsUseCase>();
+builder.Services.AddScoped<GetAllProfessionalsUseCase>();
+builder.Services.AddScoped<GetCitizensUseCase>();
+builder.Services.AddScoped<GetEntitiesUseCase>();
 builder.Services.AddScoped<IAuthModuleApi, AuthModuleApi>();
 builder.Services.AddScoped<IEntityRepository, EntityRepository>();
 builder.Services.AddScoped<IProfessionalRepository, ProfessionalRepository>();
+builder.Services.AddScoped<ICitizenRepository, CitizenRepository>();
 
 builder.Services.AddScoped<ExamUploadUseCase>();
 builder.Services.AddScoped<DiagnosticUploadUseCase>();
@@ -133,7 +141,29 @@ builder.Services.AddOpenApi(options =>
     });
 });
 
+builder.Services.AddCors(options =>
+{
+    options.AddDefaultPolicy(policy =>
+    {
+        policy
+            .WithOrigins(
+                "https://recess-mop-awoke.ngrok-free.dev",
+                "http://localhost:3000",
+                "http://localhost:5173"
+            )
+            .AllowAnyHeader()
+            .AllowAnyMethod();
+    });
+});
+
 var app = builder.Build();
+
+app.UseForwardedHeaders(new ForwardedHeadersOptions
+{
+    ForwardedHeaders = ForwardedHeaders.XForwardedFor | ForwardedHeaders.XForwardedProto
+});
+
+app.UseCors();
 
 using (var scope = app.Services.CreateScope())
 {
@@ -156,9 +186,20 @@ if (app.Environment.IsDevelopment())
     );
 }
 
+app.UseSwaggerUI(options =>
+{
+    options.SwaggerEndpoint("/openapi/v1.json", "API v1");
+    options.UseRequestInterceptor(@"(req) => {
+        req.headers['ngrok-skip-browser-warning'] = 'true';
+        return req;
+    }");
+});
+
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
+
+app.MapGet("/", () => Results.Redirect("/swagger"));
 
 app.Run();

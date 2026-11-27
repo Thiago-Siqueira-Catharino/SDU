@@ -26,4 +26,12 @@ public class ProfessionalRepository : IProfessionalRepository
         
         return professionals;
     }
+
+    public async Task<List<Professional>> GetAllAsync()
+    {
+        return await _dbContext.Set<Professional>()
+            .AsNoTracking()
+            .OrderBy(p => p.Name)
+            .ToListAsync();
+    }
 }

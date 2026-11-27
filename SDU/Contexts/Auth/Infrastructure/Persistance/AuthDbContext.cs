@@ -31,6 +31,11 @@ public class AuthDbContext : IdentityDbContext<User>
             .HasColumnName("cim")
             .IsRequired();
         
+        modelBuilder.Entity<Citizen>()
+            .Property<string>("_cpf")
+            .HasColumnName("CPF")
+            .IsRequired();
+        
         base.OnModelCreating(modelBuilder);
         
         //modelBuilder.ApplyConfigurationsFromAssembly(typeof(AuthDbContext).Assembly);
