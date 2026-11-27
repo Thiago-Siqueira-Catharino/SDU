@@ -1,6 +1,6 @@
 namespace SDU.Contexts.Files.Domain.Entities;
 
-public class File
+public abstract class File
 {
     public Guid Id { get; private set; } = Guid.NewGuid();
     private Guid _uploaderId;
@@ -43,7 +43,7 @@ public class File
         
     }
     
-    public File(
+    protected File(
         Guid uploaderId,
         Guid citizenId,
         Guid entityId,
@@ -64,6 +64,7 @@ public class File
         
         SetUploaderId(uploaderId);
         SetCitizenId(citizenId);
+        SetEntityId(entityId);
         Path = path;
     }
 }
