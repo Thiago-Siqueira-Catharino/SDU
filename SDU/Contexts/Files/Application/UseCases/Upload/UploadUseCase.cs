@@ -2,7 +2,7 @@ using SDU.Contexts.Auth.Contracts;
 using SDU.Contexts.Files.Domain.IRepositories;
 using File = SDU.Contexts.Files.Domain.Entities.File;
 
-namespace SDU.Contexts.Files.Application.UseCases.UploadUseCase;
+namespace SDU.Contexts.Files.Application.UseCases.Upload;
 
 public abstract class UploadUseCase<TDto> where TDto : UploadDto
 {
