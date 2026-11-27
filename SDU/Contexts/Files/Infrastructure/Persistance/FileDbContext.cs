@@ -1,4 +1,5 @@
 using Microsoft.EntityFrameworkCore;
+using SDU.Contexts.Files.Domain.Entities;
 using File = SDU.Contexts.Files.Domain.Entities.File;
 
 namespace SDU.Contexts.Files.Infrastructure.Persistance;
@@ -24,6 +25,11 @@ public class FileDbContext : DbContext
             .Property<Guid>("_uploaderId")
             .HasColumnName("UploaderId")
             .IsRequired();
+
+        modelBuilder.Entity<File>()
+            .HasDiscriminator<string>("FileType")
+            .HasValue<Diagnostic>("Diagnostic")
+            .HasValue<Exam>("Exam");
         
         base.OnModelCreating(modelBuilder); 
     }
