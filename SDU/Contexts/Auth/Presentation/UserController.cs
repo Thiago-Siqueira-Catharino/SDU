@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using SDU.Contexts.Auth.Application.UseCases.GetAllProfessionals;
 using SDU.Contexts.Auth.Application.UseCases.GetDashboardStats;
 using SDU.Contexts.Auth.Application.UseCases.GetProfessionals;
 using SDU.Contexts.Auth.Application.UseCases.LoginUseCase;
@@ -18,7 +19,8 @@ public class UserController (
     NewProfessionalUseCase newProfessional,
     NewEntityUseCase newEntity,
     GetDashboardStatsUseCase getDashboardStatsUseCase,
-    GetProfessionalsUseCase getProfessionalsUseCase
+    GetProfessionalsUseCase getProfessionalsUseCase,
+    GetAllProfessionalsUseCase getAllProfessionalsUseCase
     ) : ControllerBase
 {
     [HttpPost("login")]
@@ -77,7 +79,7 @@ public class UserController (
 
     [Authorize(Roles = "Entity")]
     [HttpGet("entity/getprofessionals")]
-    public async Task<IActionResult> GetProfessionals()
+    public async Task<IActionResult> GetOwnProfessionals()
     {
         var userIdStr = User.FindAll(ClaimTypes.NameIdentifier)
             .Select(c => c.Value)
@@ -87,5 +89,11 @@ public class UserController (
             return Unauthorized();
 
         return Ok(await getProfessionalsUseCase.Run(userId.ToString()));
+    }
+
+    [HttpGet("registered/professionals")]
+    public async Task<IActionResult> GetAllProfessionals()
+    {
+        return Ok(await getAllProfessionalsUseCase.Run());
     }
 }
