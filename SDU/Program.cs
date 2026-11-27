@@ -26,8 +26,10 @@ using SDU.Contexts.Auth.Contracts;
 using SDU.Contexts.Auth.Domain.IRepositories;
 using SDU.Contexts.Auth.Infrastructure.Repositories;
 using SDU.Contexts.Auth.Infrastructure.Services;
+using SDU.Contexts.Files.Application.UseCases.DiagnosticUpload;
 using SDU.Contexts.Files.Application.UseCases.DownloadUseCase;
-using SDU.Contexts.Files.Application.UseCases.UploadUseCase;
+using SDU.Contexts.Files.Application.UseCases.ExamUpload;
+using SDU.Contexts.Files.Application.UseCases.GetExamFilesByCivilianId;
 using SDU.Contexts.Files.Infrastructure.Persistance;
 using FileRepository = SDU.Contexts.Files.Infrastructure.Repositories.FileRepository;
 using IFileRepository = SDU.Contexts.Files.Domain.IRepositories.IFileRepository;
@@ -72,7 +74,9 @@ builder.Services.AddScoped<IAuthModuleApi, AuthModuleApi>();
 builder.Services.AddScoped<IEntityRepository, EntityRepository>();
 builder.Services.AddScoped<IProfessionalRepository, ProfessionalRepository>();
 
-builder.Services.AddScoped<UploadUseCase>();
+builder.Services.AddScoped<ExamUploadUseCase>();
+builder.Services.AddScoped<DiagnosticUploadUseCase>();
+builder.Services.AddScoped<GetCitizenFilesUseCase>();
 builder.Services.AddScoped<DownloadUseCase>();
 builder.Services.AddScoped<IFileRepository, FileRepository>();
 

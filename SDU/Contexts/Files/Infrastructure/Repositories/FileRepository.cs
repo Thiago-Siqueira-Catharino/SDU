@@ -29,6 +29,7 @@ public class FileRepository : IFileRepository
     {
         return await _dbContext.Files.Where(f => 
             EF.Property<Guid>(f, "_citizenId") == citizenId)
+            .OrderByDescending(f => f.UploadDate)
             .ToListAsync();
     }
 
