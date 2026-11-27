@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using SDU.Contexts.Appointments.Application.UseCases.CancelAppointmentUseCase;
 using SDU.Contexts.Appointments.Application.UseCases.NewAppointmentUseCase;
 using SDU.Contexts.Appointments.Application.UseCases.CompleteAppointmentUseCase;
+using SDU.Contexts.Appointments.Application.UseCases.MissedAppointment;
 using SDU.Contexts.Appointments.Application.UseCases.SearchAppointmentsUseCase;
 using SDU.Contexts.Appointments.Application.UseCases.SearchOwnAppointments;
 using SDU.Contexts.Appointments.Domain.IRepositories;
@@ -16,6 +17,7 @@ public class AppointmentsController(
     NewAppointmentUseCase _newAppointmentUseCase,
     CancelAppointmentUseCase _cancelAppointmentUseCase,
     CompleteAppointmentUseCase _completeAppointmentUseCase,
+    MissedAppointmentUseCase _missedAppointmentUseCase,
     SearchAppointmentsUseCase _searchAppointmentUseCase,
     SearchOwnAppointmentsUseCase _searchOwnAppointmentUseCase
     ) : ControllerBase
@@ -24,9 +26,16 @@ public class AppointmentsController(
     [Authorize(Roles = "Professional")]
     public async Task<IActionResult> NewAppointment(NewAppointmentDto dto)
     {
+        var userIdStr = User.FindAll(ClaimTypes.NameIdentifier)
+            .Select(c => c.Value)
+            .FirstOrDefault(v => Guid.TryParse(v, out _));
+
+        if (!Guid.TryParse(userIdStr, out Guid professionalId))
+            return Unauthorized();
+        
         try
         {
-            await _newAppointmentUseCase.Run(dto);
+            await _newAppointmentUseCase.Run(dto, professionalId);
             return Ok();
         }
         catch (Exception e)
@@ -79,6 +88,29 @@ public class AppointmentsController(
             return BadRequest(e.Message);
         }
     }
+
+    [HttpPost("missed")]
+    [Authorize(Roles = "Professional, Entity")]
+    public async Task<IActionResult> MarkAsMissedAppointment(Guid toMarkAsMissedId)
+    {
+        var userIdStr = User.FindAll(ClaimTypes.NameIdentifier)
+            .Select(c => c.Value)
+            .FirstOrDefault(v => Guid.TryParse(v, out _));
+        
+        if (!Guid.TryParse(userIdStr, out Guid userId))
+            return Unauthorized();
+        
+        try
+        {
+            await _missedAppointmentUseCase.Run(toMarkAsMissedId, userId);
+            return Ok();
+        }
+        catch (Exception e)
+        {
+            return BadRequest(e.Message);
+        }
+    }
+    
 
     [HttpPost("search")]
     [Authorize]
